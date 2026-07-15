@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { isAxiosError } from 'axios';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
@@ -101,7 +101,16 @@ export function LoginScreen() {
           )}
         />
 
-        <Text style={styles.forgotPassword}>Esqueci a senha</Text>
+        <Pressable
+          onPress={() =>
+            Alert.alert(
+              'Esqueci a senha',
+              'A recuperação de senha ainda não existe na API. Fale com um administrador do CRAS para redefinir sua senha.'
+            )
+          }
+        >
+          <Text style={styles.forgotPassword}>Esqueci a senha</Text>
+        </Pressable>
 
         {submitting ? (
           <ActivityIndicator color={colors.primary} />
