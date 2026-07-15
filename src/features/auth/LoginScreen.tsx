@@ -3,6 +3,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { isAxiosError } from 'axios';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { ErrorBanner } from '../../components/ErrorBanner';
@@ -36,8 +37,12 @@ export function LoginScreen() {
     setSubmitting(true);
     try {
       await login(values.email, values.password);
-    } catch {
-      setServerError('Usuário inválido. Email ou senha estão incorretos.');
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        setServerError('Usuário inválido. Email ou senha estão incorretos.');
+      } else {
+        setServerError('Não foi possível conectar ao servidor. Verifique sua conexão.');
+      }
     } finally {
       setSubmitting(false);
     }
