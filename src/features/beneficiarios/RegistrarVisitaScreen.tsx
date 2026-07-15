@@ -9,6 +9,7 @@ import { FamiliasStackParamList } from '../../navigation/types';
 import { Header } from '../../components/Header';
 import { TextField } from '../../components/TextField';
 import { Button } from '../../components/Button';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, radii, spacing } from '../../theme';
 import { visitaSchema, VisitaFormValues } from './schemas';
 import { useCreateVisita } from './hooks';
@@ -23,6 +24,7 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     control,
@@ -47,6 +49,7 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
   }
 
   async function onSubmit(values: VisitaFormValues) {
+    setSubmitError(null);
     let imageUrl: string | null = null;
 
     if (photoUri) {
@@ -60,23 +63,28 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
       }
     }
 
-    const visita = await create({
-      ...values,
-      beneficiarioId,
-      imagens: imageUrl ? [imageUrl] : undefined,
-    });
+    try {
+      const visita = await create({
+        ...values,
+        beneficiarioId,
+        imagens: imageUrl ? [imageUrl] : undefined,
+      });
 
-    if (imageUrl) {
-      await saveVisitaImage(visita.uuid, imageUrl);
+      if (imageUrl) {
+        await saveVisitaImage(visita.uuid, imageUrl);
+      }
+
+      navigation.goBack();
+    } catch {
+      setSubmitError('Não foi possível salvar a visita agora. Tente novamente.');
     }
-
-    navigation.goBack();
   }
 
   return (
     <View style={styles.container}>
       <Header title="Registrar visita" onBack={navigation.goBack} />
       <ScrollView contentContainerStyle={styles.content}>
+        {submitError && <ErrorBanner message={submitError} />}
         <Controller
           control={control}
           name="date"

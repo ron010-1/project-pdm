@@ -1,4 +1,4 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
@@ -15,12 +15,25 @@ type Props = NativeStackScreenProps<FamiliasStackParamList, 'Detalhe'>;
 
 export function DetalheScreen({ route, navigation }: Props) {
   const { beneficiarioId } = route.params;
-  const { data, visitas, loading } = useBeneficiario(beneficiarioId);
+  const { data, visitas, loading, error, reload } = useBeneficiario(beneficiarioId);
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Header title="Detalhes" onBack={navigation.goBack} />
+        <View style={styles.centerState}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Button label="Tentar novamente" variant="outline" onPress={reload} />
+        </View>
+      </View>
+    );
+  }
 
   if (loading || !data) {
     return (
       <View style={styles.container}>
         <Header title="Detalhes" onBack={navigation.goBack} />
+        <ActivityIndicator style={styles.centerState} color={colors.primary} />
       </View>
     );
   }
@@ -114,6 +127,18 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: fontSizes.sm,
     color: colors.textPrimary,
+  },
+  centerState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+    gap: spacing.lg,
+  },
+  errorText: {
+    fontSize: fontSizes.base,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
   infoCard: {
     gap: spacing.md,

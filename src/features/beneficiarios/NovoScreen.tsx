@@ -9,6 +9,7 @@ import { FamiliasStackParamList } from '../../navigation/types';
 import { Header } from '../../components/Header';
 import { TextField } from '../../components/TextField';
 import { Button } from '../../components/Button';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, radii, spacing } from '../../theme';
 import { beneficiarioSchema, BeneficiarioFormValues } from './schemas';
 import { useCreateBeneficiario } from './hooks';
@@ -25,6 +26,7 @@ type Props = NativeStackScreenProps<FamiliasStackParamList, 'Novo'>;
 export function NovoScreen({ navigation }: Props) {
   const { create, submitting } = useCreateBeneficiario();
   const [region, setRegion] = useState(DEFAULT_REGION);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     control,
@@ -70,21 +72,27 @@ export function NovoScreen({ navigation }: Props) {
   }
 
   async function onSubmit(values: BeneficiarioFormValues) {
-    await create({
-      nome: values.nome,
-      nome_responsavel: values.nome_responsavel,
-      data_nascimento: values.data_nascimento,
-      phone1: values.phone1,
-      phone2: values.phone2,
-      location: { type: 'Point', coordinates: [values.longitude, values.latitude] },
-    });
-    navigation.goBack();
+    setSubmitError(null);
+    try {
+      await create({
+        nome: values.nome,
+        nome_responsavel: values.nome_responsavel,
+        data_nascimento: values.data_nascimento,
+        phone1: values.phone1,
+        phone2: values.phone2,
+        location: { type: 'Point', coordinates: [values.longitude, values.latitude] },
+      });
+      navigation.goBack();
+    } catch {
+      setSubmitError('Não foi possível salvar o beneficiário agora. Tente novamente.');
+    }
   }
 
   return (
     <View style={styles.container}>
       <Header title="Novo beneficiário" onBack={navigation.goBack} />
       <ScrollView contentContainerStyle={styles.content}>
+        {submitError && <ErrorBanner message={submitError} />}
         <Controller
           control={control}
           name="nome"

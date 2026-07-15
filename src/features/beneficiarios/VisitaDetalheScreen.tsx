@@ -11,12 +11,13 @@ import { useVisita } from './hooks';
 import * as beneficiariosApi from '../../api/beneficiarios';
 import { Beneficiario } from '../../api/types';
 import { getVisitaImage } from '../../storage/cache';
+import { Button } from '../../components/Button';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'VisitaDetalhe'>;
 
 export function VisitaDetalheScreen({ route, navigation }: Props) {
   const { visitaId } = route.params;
-  const { data: visita, loading } = useVisita(visitaId);
+  const { data: visita, loading, error } = useVisita(visitaId);
   const [beneficiario, setBeneficiario] = useState<Beneficiario | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -29,6 +30,18 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
   useEffect(() => {
     getVisitaImage(visitaId).then(setImageUrl);
   }, [visitaId]);
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Header title="Detalhes da visita" onBack={navigation.goBack} />
+        <View style={styles.centerState}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Button label="Voltar" variant="outline" onPress={navigation.goBack} />
+        </View>
+      </View>
+    );
+  }
 
   if (loading || !visita) {
     return (
@@ -94,6 +107,18 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginTop: spacing.xxl,
+  },
+  centerState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+    gap: spacing.lg,
+  },
+  errorText: {
+    fontSize: fontSizes.base,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
   content: {
     padding: spacing.lg,

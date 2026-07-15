@@ -36,9 +36,11 @@ export function useBeneficiario(id: string) {
   const [data, setData] = useState<Beneficiario | null>(null);
   const [visitas, setVisitas] = useState<Visita[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const [beneficiario, allVisitas] = await Promise.all([
         beneficiariosApi.getById(id),
@@ -46,6 +48,8 @@ export function useBeneficiario(id: string) {
       ]);
       setData(beneficiario);
       setVisitas(allVisitas.filter((visita) => visita.beneficiarioId === id));
+    } catch {
+      setError('Não foi possível carregar este beneficiário agora.');
     } finally {
       setLoading(false);
     }
@@ -55,7 +59,7 @@ export function useBeneficiario(id: string) {
     reload();
   }, [reload]);
 
-  return { data, visitas, loading, reload };
+  return { data, visitas, loading, error, reload };
 }
 
 export function useCreateBeneficiario() {
@@ -91,13 +95,15 @@ export function useCreateVisita() {
 export function useVisita(id: string) {
   const [data, setData] = useState<Visita | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     visitasApi
       .getById(id)
       .then(setData)
+      .catch(() => setError('Não foi possível carregar esta visita agora.'))
       .finally(() => setLoading(false));
   }, [id]);
 
-  return { data, loading };
+  return { data, loading, error };
 }
