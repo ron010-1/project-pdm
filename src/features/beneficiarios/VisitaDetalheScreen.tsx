@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import dayjs from 'dayjs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { FamiliasStackParamList } from '../../navigation/types';
 import { Header } from '../../components/Header';
 import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
-import { colors, fontSizes, fontWeights, spacing } from '../../theme';
+import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { useVisita } from './hooks';
 import * as beneficiariosApi from '../../api/beneficiarios';
 import { Beneficiario } from '../../api/types';
+import { getVisitaImage } from '../../storage/cache';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'VisitaDetalhe'>;
 
@@ -17,12 +18,17 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
   const { visitaId } = route.params;
   const { data: visita, loading } = useVisita(visitaId);
   const [beneficiario, setBeneficiario] = useState<Beneficiario | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (visita) {
       beneficiariosApi.getById(visita.beneficiarioId).then(setBeneficiario);
     }
   }, [visita]);
+
+  useEffect(() => {
+    getVisitaImage(visitaId).then(setImageUrl);
+  }, [visitaId]);
 
   if (loading || !visita) {
     return (
@@ -60,6 +66,13 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
         <Card style={styles.relatoCard}>
           <Text style={styles.relatoText}>{visita.evolucao}</Text>
         </Card>
+
+        {imageUrl && (
+          <>
+            <Text style={styles.sectionTitle}>FOTO DA VISITA</Text>
+            <Image source={{ uri: imageUrl }} style={styles.photo} />
+          </>
+        )}
       </View>
     </View>
   );
@@ -122,5 +135,10 @@ const styles = StyleSheet.create({
   relatoText: {
     fontSize: fontSizes.base,
     color: colors.textPrimary,
+  },
+  photo: {
+    width: '100%',
+    height: 220,
+    borderRadius: radii.md,
   },
 });

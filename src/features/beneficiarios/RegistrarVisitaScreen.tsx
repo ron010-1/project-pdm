@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -12,6 +12,8 @@ import { Button } from '../../components/Button';
 import { colors, fontSizes, radii, spacing } from '../../theme';
 import { visitaSchema, VisitaFormValues } from './schemas';
 import { useCreateVisita } from './hooks';
+import { uploadImage } from '../../api/imageUpload';
+import { saveVisitaImage } from '../../storage/cache';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'RegistrarVisita'>;
 
@@ -19,6 +21,8 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
   const { beneficiarioId } = route.params;
   const { create, submitting } = useCreateVisita();
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const {
     control,
@@ -38,15 +42,34 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
     if (!result.canceled) {
       setPhotoUri(result.assets[0].uri);
+      setUploadError(null);
     }
   }
 
   async function onSubmit(values: VisitaFormValues) {
-    await create({
+    let imageUrl: string | null = null;
+
+    if (photoUri) {
+      setUploadingPhoto(true);
+      try {
+        imageUrl = await uploadImage(photoUri);
+      } catch {
+        setUploadError('Não foi possível enviar a foto agora. A visita será salva sem ela.');
+      } finally {
+        setUploadingPhoto(false);
+      }
+    }
+
+    const visita = await create({
       ...values,
       beneficiarioId,
-      imagens: photoUri ? [photoUri] : undefined,
+      imagens: imageUrl ? [imageUrl] : undefined,
     });
+
+    if (imageUrl) {
+      await saveVisitaImage(visita.uuid, imageUrl);
+    }
+
     navigation.goBack();
   }
 
@@ -109,11 +132,17 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
             <Ionicons name="camera" size={24} color={colors.textSecondary} />
           )}
         </Pressable>
+        {uploadError && <Text style={styles.photoError}>{uploadError}</Text>}
         <Text style={styles.photoNote}>
-          A foto é salva apenas no dispositivo — a API ainda não grava imagens de visita.
+          A foto é enviada para um serviço próprio de imagens — a API principal ainda não grava
+          imagens de visita, então o vínculo com esta visita é lembrado só neste dispositivo.
         </Text>
 
-        <Button label="Salvar visita" onPress={handleSubmit(onSubmit)} loading={submitting} />
+        {uploadingPhoto ? (
+          <ActivityIndicator color={colors.primary} style={styles.uploadIndicator} />
+        ) : (
+          <Button label="Salvar visita" onPress={handleSubmit(onSubmit)} loading={submitting} />
+        )}
       </ScrollView>
     </View>
   );
@@ -146,9 +175,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  photoError: {
+    fontSize: fontSizes.xs,
+    color: colors.danger,
+    marginBottom: spacing.sm,
+  },
   photoNote: {
     fontSize: fontSizes.xs,
     color: colors.textSecondary,
     marginBottom: spacing.xl,
+  },
+  uploadIndicator: {
+    marginVertical: spacing.md,
   },
 });
