@@ -35,7 +35,7 @@ Abra no Expo Go (celular) ou em um emulador/simulador a partir do menu do Metro.
 - `src/api` — cliente axios (com interceptor de autenticação) e endpoints tipados da API
 - `src/context/AuthContext.tsx` — autenticação (login/logout, token persistido)
 - `src/navigation` — stacks e tabs
-- `src/features` — telas por área: `auth`, `beneficiarios` (CRUD + visitas, integrado à API), `relatorios`, `inicio`, `agenda`, `perfil`
+- `src/features` — telas por área: `auth`, `beneficiarios` (CRUD + visitas, integrado à API), `agenda` (lista de visitas real, integrada à API), `inicio` (dashboard real: visitas de hoje, famílias ativas, alertas), `relatorios` (dados de exemplo), `perfil`
 
 ## Upload de imagem
 
@@ -43,5 +43,7 @@ A API `criancaFeliz-pw1` não persiste imagens de visita (`POST /visitas` descar
 
 ## Limitações conhecidas
 
-- As telas de Início, Agenda e Relatórios usam dados de exemplo — ainda não há endpoints correspondentes na API.
+- Relatórios usa dados de exemplo — não há endpoint de relatório na API.
+- A Agenda no Figma prevê status "agendada"/"cancelada" (visitas futuras), mas o model `Visita` da API só registra visitas já realizadas (sem campo de status/agendamento). Por isso a Agenda deste app lista só visitas já registradas, todas com badge "Realizada", sem os filtros de status do Figma — não dava pra fabricar um estado de agendamento que a API não tem.
 - O vínculo foto↔visita só existe no dispositivo que fez o upload (reinstalar o app ou trocar de aparelho perde essa referência, embora a imagem em si continue no Supabase Storage).
+- O nome exibido no Início/Perfil vem de `GET /assists/:id` a partir do uuid do token — se o usuário logado for um Admin (não um Assistente Social), essa busca falha silenciosamente e o nome genérico "Assistente Social" é mostrado no lugar.
