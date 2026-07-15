@@ -34,7 +34,8 @@
         {
           "photosPermission": "O app acessa suas fotos para anexar uma imagem à visita registrada."
         }
-      ]
+      ],
+      "expo-video"
     ]
   }
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import dayjs from 'dayjs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { FamiliasStackParamList } from '../../navigation/types';
@@ -10,7 +11,7 @@ import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { useVisita } from './hooks';
 import * as beneficiariosApi from '../../api/beneficiarios';
 import { Beneficiario } from '../../api/types';
-import { getVisitaImage } from '../../storage/cache';
+import { getVisitaMedia, VisitaMedia } from '../../storage/cache';
 import { Button } from '../../components/Button';
 import { useAddress } from '../../utils/location';
 
@@ -20,7 +21,7 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
   const { visitaId } = route.params;
   const { data: visita, loading, error } = useVisita(visitaId);
   const [beneficiario, setBeneficiario] = useState<Beneficiario | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [media, setMedia] = useState<VisitaMedia | null>(null);
   const endereco = useAddress(beneficiario?.location.coordinates[1], beneficiario?.location.coordinates[0]);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
   }, [visita]);
 
   useEffect(() => {
-    getVisitaImage(visitaId).then(setImageUrl);
+    getVisitaMedia(visitaId).then(setMedia);
   }, [visitaId]);
 
   if (error) {
@@ -83,10 +84,14 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
           <Text style={styles.relatoText}>{visita.evolucao}</Text>
         </Card>
 
-        {imageUrl && (
+        {media && (
           <>
-            <Text style={styles.sectionTitle}>FOTO DA VISITA</Text>
-            <Image source={{ uri: imageUrl }} style={styles.photo} />
+            <Text style={styles.sectionTitle}>{media.type === 'video' ? 'VÍDEO DA VISITA' : 'FOTO DA VISITA'}</Text>
+            {media.type === 'video' ? (
+              <VideoPreview uri={media.url} />
+            ) : (
+              <Image source={{ uri: media.url }} style={styles.photo} />
+            )}
           </>
         )}
       </View>
@@ -101,6 +106,11 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <Text style={styles.infoValue}>{value}</Text>
     </View>
   );
+}
+
+function VideoPreview({ uri }: { uri: string }) {
+  const player = useVideoPlayer(uri);
+  return <VideoView style={styles.photo} player={player} nativeControls />;
 }
 
 const styles = StyleSheet.create({

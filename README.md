@@ -37,9 +37,9 @@ Abra no Expo Go (celular) ou em um emulador/simulador a partir do menu do Metro.
 - `src/navigation` — stacks e tabs
 - `src/features` — telas por área: `auth`, `beneficiarios` (CRUD + visitas, integrado à API), `agenda` (lista de visitas real, integrada à API), `inicio` (dashboard real: visitas de hoje, famílias ativas, alertas), `relatorios` (dados de exemplo), `perfil`
 
-## Upload de imagem
+## Upload de imagem/vídeo
 
-A API `criancaFeliz-pw1` não persiste imagens de visita (`POST /visitas` descarta o campo `imagens` — o model `Imagem` existe mas nenhum controller grava linha nele). Por isso, a foto anexada na tela de registro de visita é enviada de verdade para o microserviço próprio `serviceImages` (`POST /upload`, campo `image`, retorna uma URL pública do Supabase Storage), e o vínculo entre essa URL e a visita é lembrado localmente no dispositivo (`AsyncStorage`), já que nenhum dos dois backends guarda essa associação.
+A API `criancaFeliz-pw1` não persiste mídia de visita (`POST /visitas` descarta o campo `imagens` — o model `Imagem` existe mas nenhum controller grava linha nele). Por isso, a foto ou vídeo anexado na tela de registro de visita é enviado de verdade para o microserviço próprio `serviceImages` (`POST /upload`, campo `image`, aceita qualquer tipo de arquivo — retorna uma URL pública do Supabase Storage), e o vínculo entre essa URL/tipo e a visita é lembrado localmente no dispositivo (`AsyncStorage`, `src/storage/cache.ts`), já que nenhum dos dois backends guarda essa associação. A visualização usa `<Image>` pra fotos e `expo-video` (`VideoView`) com controles nativos pra vídeos.
 
 ## Mapa
 

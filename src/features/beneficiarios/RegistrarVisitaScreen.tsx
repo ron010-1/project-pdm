@@ -24,8 +24,8 @@ import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, radii, spacing } from '../../theme';
 import { visitaSchema, VisitaFormValues } from './schemas';
 import { useBeneficiarios, useCreateVisita } from './hooks';
-import { uploadImage } from '../../api/imageUpload';
-import { saveVisitaImage } from '../../storage/cache';
+import { uploadMedia } from '../../api/media';
+import { saveVisitaMedia } from '../../storage/cache';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'RegistrarVisita'>;
 
@@ -36,8 +36,9 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [search, setSearch] = useState('');
   const [beneficiarioError, setBeneficiarioError] = useState<string | null>(null);
-  const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [mediaUri, setMediaUri] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -62,10 +63,12 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
     },
   });
 
-  async function pickPhoto() {
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
+  async function pickMedia() {
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], quality: 0.7 });
     if (!result.canceled) {
-      setPhotoUri(result.assets[0].uri);
+      const asset = result.assets[0];
+      setMediaUri(asset.uri);
+      setMediaType(asset.type === 'video' ? 'video' : 'image');
       setUploadError(null);
     }
   }
@@ -77,16 +80,20 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
     }
     setBeneficiarioError(null);
     setSubmitError(null);
-    let imageUrl: string | null = null;
+    let mediaUrl: string | null = null;
 
-    if (photoUri) {
-      setUploadingPhoto(true);
+    if (mediaUri) {
+      setUploadingMedia(true);
       try {
-        imageUrl = await uploadImage(photoUri);
+        mediaUrl = await uploadMedia(mediaUri, mediaType === 'video' ? 'video/mp4' : 'image/jpeg');
       } catch {
-        setUploadError('Não foi possível enviar a foto agora. A visita será salva sem ela.');
+        setUploadError(
+          mediaType === 'video'
+            ? 'Não foi possível enviar o vídeo agora. A visita será salva sem ele.'
+            : 'Não foi possível enviar a foto agora. A visita será salva sem ela.'
+        );
       } finally {
-        setUploadingPhoto(false);
+        setUploadingMedia(false);
       }
     }
 
@@ -94,11 +101,11 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
       const visita = await create({
         ...values,
         beneficiarioId,
-        imagens: imageUrl ? [imageUrl] : undefined,
+        imagens: mediaUrl ? [mediaUrl] : undefined,
       });
 
-      if (imageUrl) {
-        await saveVisitaImage(visita.uuid, imageUrl);
+      if (mediaUrl) {
+        await saveVisitaMedia(visita.uuid, { url: mediaUrl, type: mediaType });
       }
 
       navigation.goBack();
@@ -172,21 +179,26 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
           )}
         />
 
-        <Text style={styles.photoLabel}>Foto da visita (opcional)</Text>
-        <Pressable style={styles.photoPicker} onPress={pickPhoto}>
-          {photoUri ? (
-            <Image source={{ uri: photoUri }} style={styles.photoPreview} />
+        <Text style={styles.photoLabel}>Foto ou vídeo da visita (opcional)</Text>
+        <Pressable style={styles.photoPicker} onPress={pickMedia}>
+          {mediaUri && mediaType === 'image' ? (
+            <Image source={{ uri: mediaUri }} style={styles.photoPreview} />
+          ) : mediaUri && mediaType === 'video' ? (
+            <View style={styles.videoPreview}>
+              <Ionicons name="videocam" size={24} color={colors.primary} />
+              <Text style={styles.videoPreviewLabel}>Vídeo selecionado</Text>
+            </View>
           ) : (
             <Ionicons name="camera" size={24} color={colors.textSecondary} />
           )}
         </Pressable>
         {uploadError && <Text style={styles.photoError}>{uploadError}</Text>}
         <Text style={styles.photoNote}>
-          A foto é enviada para um serviço próprio de imagens — a API principal ainda não grava
-          imagens de visita, então o vínculo com esta visita é lembrado só neste dispositivo.
+          A mídia é enviada para um serviço próprio de imagens/vídeos — a API principal ainda não
+          grava mídia de visita, então o vínculo com esta visita é lembrado só neste dispositivo.
         </Text>
 
-        {uploadingPhoto ? (
+        {uploadingMedia ? (
           <ActivityIndicator color={colors.primary} style={styles.uploadIndicator} />
         ) : (
           <Button label="Marcar como realizada" onPress={handleSubmit(onSubmit)} loading={submitting} />
@@ -288,6 +300,15 @@ const styles = StyleSheet.create({
   photoPreview: {
     width: '100%',
     height: '100%',
+  },
+  videoPreview: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  videoPreviewLabel: {
+    fontSize: fontSizes.xs,
+    color: colors.textSecondary,
   },
   photoError: {
     fontSize: fontSizes.xs,
