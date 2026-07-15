@@ -22,7 +22,19 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O app usa sua localização para marcar o endereço do beneficiário e da visita no mapa."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O app acessa suas fotos para anexar uma imagem à visita registrada."
+        }
+      ]
     ]
   }
 }

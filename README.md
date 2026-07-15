@@ -41,6 +41,10 @@ Abra no Expo Go (celular) ou em um emulador/simulador a partir do menu do Metro.
 
 A API `criancaFeliz-pw1` não persiste imagens de visita (`POST /visitas` descarta o campo `imagens` — o model `Imagem` existe mas nenhum controller grava linha nele). Por isso, a foto anexada na tela de registro de visita é enviada de verdade para o microserviço próprio `serviceImages` (`POST /upload`, campo `image`, retorna uma URL pública do Supabase Storage), e o vínculo entre essa URL e a visita é lembrado localmente no dispositivo (`AsyncStorage`), já que nenhum dos dois backends guarda essa associação.
 
+## Mapa
+
+O mapa de seleção de endereço (`react-native-maps`) funciona no Expo Go em dev, mas para um build nativo real (EAS build/produção) o Android precisa de uma chave da Google Maps SDK em `app.json` (`expo.android.config.googleMaps.apiKey`), que ainda não foi configurada.
+
 ## Limitações conhecidas
 
 - Relatórios usa dados de exemplo — não há endpoint de relatório na API.
