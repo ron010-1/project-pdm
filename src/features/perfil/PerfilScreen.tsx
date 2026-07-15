@@ -6,7 +6,7 @@ import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 
 export function PerfilScreen() {
-  const { userId, logout } = useAuth();
+  const { userId, nome, logout } = useAuth();
 
   return (
     <View style={styles.container}>
@@ -19,6 +19,7 @@ export function PerfilScreen() {
           <View style={styles.avatar}>
             <Ionicons name="person" size={28} color={colors.primary} />
           </View>
+          <Text style={styles.name}>{nome ?? 'Assistente Social'}</Text>
           <Text style={styles.label}>ID DA CONTA</Text>
           <Text style={styles.value}>{userId ?? '—'}</Text>
         </Card>
@@ -64,10 +65,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
+  name: {
+    fontSize: fontSizes.md,
+    fontWeight: fontWeights.bold,
+    color: colors.textPrimary,
+  },
   label: {
     fontSize: fontSizes.xs,
     color: colors.textSecondary,
     letterSpacing: 0.3,
+    marginTop: spacing.sm,
   },
   value: {
     fontSize: fontSizes.base,
