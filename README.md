@@ -45,6 +45,10 @@ A API `criancaFeliz-pw1` não persiste mídia de visita (`POST /visitas` descart
 
 O mapa de seleção de endereço (`react-native-maps`) funciona no Expo Go em dev, mas para um build nativo real (EAS build/produção) o Android precisa de uma chave da Google Maps SDK em `app.json` (`expo.android.config.googleMaps.apiKey`), que ainda não foi configurada.
 
+## Regras de negócio implementadas (SIGPCF_Requisitos.pdf)
+
+- **RNF_06 (Essencial)** — "Apenas o assistente social responsável pode alterar a data de uma visita domiciliar": o botão de editar data em `VisitaDetalheScreen` só aparece se `visita.assistenteId` for igual ao usuário logado. Como `PATCH /visitas/:id` na API não valida isso no servidor (qualquer token válido pode editar qualquer visita), essa é uma restrição só do lado do cliente — não impede alguém de chamar a API diretamente.
+
 ## Limitações conhecidas
 
 - Relatórios usa dados de exemplo — não há endpoint de relatório na API.

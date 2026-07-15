@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import dayjs from 'dayjs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -7,22 +8,47 @@ import { FamiliasStackParamList } from '../../navigation/types';
 import { Header } from '../../components/Header';
 import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
+import { TextField } from '../../components/TextField';
 import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
-import { useVisita } from './hooks';
+import { useUpdateVisitaDate, useVisita } from './hooks';
 import * as beneficiariosApi from '../../api/beneficiarios';
 import { Beneficiario } from '../../api/types';
 import { getVisitaMedia, VisitaMedia } from '../../storage/cache';
 import { Button } from '../../components/Button';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { useAddress } from '../../utils/location';
+import { useAuth } from '../../context/AuthContext';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'VisitaDetalhe'>;
 
 export function VisitaDetalheScreen({ route, navigation }: Props) {
   const { visitaId } = route.params;
-  const { data: visita, loading, error } = useVisita(visitaId);
+  const { data: visita, loading, error, reload } = useVisita(visitaId);
+  const { userId } = useAuth();
+  const { updateDate, submitting: savingDate } = useUpdateVisitaDate();
   const [beneficiario, setBeneficiario] = useState<Beneficiario | null>(null);
   const [media, setMedia] = useState<VisitaMedia | null>(null);
+  const [editingDate, setEditingDate] = useState(false);
+  const [dateDraft, setDateDraft] = useState('');
+  const [dateError, setDateError] = useState<string | null>(null);
   const endereco = useAddress(beneficiario?.location.coordinates[1], beneficiario?.location.coordinates[0]);
+
+  const podeEditarData = !!visita && visita.assistenteId === userId;
+
+  async function salvarNovaData() {
+    if (!dateDraft.trim()) {
+      setDateError('Informe a nova data.');
+      return;
+    }
+    setDateError(null);
+    try {
+      await updateDate(visitaId, dateDraft);
+      setEditingDate(false);
+      reload();
+    } catch {
+      setDateError('Não foi possível atualizar a data agora.');
+    }
+  }
 
   useEffect(() => {
     if (visita) {
@@ -67,7 +93,37 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
           </View>
 
           <InfoRow label="BENEFICIÁRIO" value={beneficiario?.nome ?? '—'} />
-          <InfoRow label="DATA" value={dayjs(visita.date).format('DD/MM/YYYY [às] HH:mm')} />
+
+          <View style={styles.dateRow}>
+            <InfoRow label="DATA" value={dayjs(visita.date).format('DD/MM/YYYY [às] HH:mm')} />
+            {podeEditarData && !editingDate && (
+              <Pressable
+                onPress={() => {
+                  setDateDraft(visita.date.slice(0, 10));
+                  setEditingDate(true);
+                }}
+                hitSlop={8}
+              >
+                <Ionicons name="pencil" size={16} color={colors.primary} />
+              </Pressable>
+            )}
+          </View>
+
+          {editingDate && (
+            <View>
+              {dateError && <ErrorBanner message={dateError} />}
+              <TextField label="Nova data" placeholder="AAAA-MM-DD" value={dateDraft} onChangeText={setDateDraft} />
+              <View style={styles.dateEditButtons}>
+                <View style={styles.dateEditButton}>
+                  <Button label="Cancelar" variant="outline" onPress={() => setEditingDate(false)} />
+                </View>
+                <View style={styles.dateEditButton}>
+                  <Button label="Salvar" onPress={salvarNovaData} loading={savingDate} />
+                </View>
+              </View>
+            </View>
+          )}
+
           <InfoRow
             label="ENDEREÇO"
             value={
@@ -151,6 +207,18 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     gap: spacing.xs,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateEditButtons: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  dateEditButton: {
+    flex: 1,
   },
   infoLabel: {
     fontSize: fontSizes.sm,

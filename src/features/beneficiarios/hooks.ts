@@ -97,7 +97,9 @@ export function useVisita(id: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const reload = useCallback(() => {
+    setLoading(true);
+    setError(null);
     visitasApi
       .getById(id)
       .then(setData)
@@ -105,5 +107,24 @@ export function useVisita(id: string) {
       .finally(() => setLoading(false));
   }, [id]);
 
-  return { data, loading, error };
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  return { data, loading, error, reload };
+}
+
+export function useUpdateVisitaDate() {
+  const [submitting, setSubmitting] = useState(false);
+
+  async function updateDate(id: string, date: string) {
+    setSubmitting(true);
+    try {
+      return await visitasApi.update(id, { date });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return { updateDate, submitting };
 }
