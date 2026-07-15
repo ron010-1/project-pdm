@@ -17,7 +17,9 @@ import { Badge } from '../../components/Badge';
 import { EmptyState } from '../../components/EmptyState';
 import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { ageInYears, beneficiarioStatus, statusLabel } from '../../utils/age';
+import { useAddress } from '../../utils/location';
 import { useBeneficiarios } from './hooks';
+import { Beneficiario } from '../../api/types';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -84,32 +86,40 @@ export function ListScreen({ navigation }: Props) {
             }
           />
         }
-        renderItem={({ item }) => {
-          const status = beneficiarioStatus(item.data_nascimento);
-          return (
-            <Pressable
-              style={styles.card}
-              onPress={() => navigation.navigate('Detalhe', { beneficiarioId: item.uuid })}
-            >
-              <View style={styles.avatar}>
-                <Text style={styles.avatarLabel}>{item.nome.charAt(0).toUpperCase()}</Text>
-              </View>
-              <View style={styles.cardBody}>
-                <View style={styles.cardTopRow}>
-                  <Text style={styles.cardName} numberOfLines={1}>
-                    {item.nome}
-                  </Text>
-                  <Badge label={statusLabel(status)} variant={status} />
-                </View>
-                <Text style={styles.cardMeta}>
-                  {ageInYears(item.data_nascimento)} anos • Resp.: {item.nome_responsavel}
-                </Text>
-              </View>
-            </Pressable>
-          );
-        }}
+        renderItem={({ item }) => (
+          <BeneficiarioCard item={item} onPress={() => navigation.navigate('Detalhe', { beneficiarioId: item.uuid })} />
+        )}
       />
     </View>
+  );
+}
+
+function BeneficiarioCard({ item, onPress }: { item: Beneficiario; onPress: () => void }) {
+  const status = beneficiarioStatus(item.data_nascimento);
+  const endereco = useAddress(item.location.coordinates[1], item.location.coordinates[0]);
+
+  return (
+    <Pressable style={styles.card} onPress={onPress}>
+      <View style={styles.avatar}>
+        <Text style={styles.avatarLabel}>{item.nome.charAt(0).toUpperCase()}</Text>
+      </View>
+      <View style={styles.cardBody}>
+        <View style={styles.cardTopRow}>
+          <Text style={styles.cardName} numberOfLines={1}>
+            {item.nome}
+          </Text>
+          <Badge label={statusLabel(status)} variant={status} />
+        </View>
+        <Text style={styles.cardMeta}>
+          {ageInYears(item.data_nascimento)} anos • Resp.: {item.nome_responsavel}
+        </Text>
+        {endereco && (
+          <Text style={styles.cardAddress} numberOfLines={1}>
+            {endereco}
+          </Text>
+        )}
+      </View>
+    </Pressable>
   );
 }
 
@@ -214,6 +224,10 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   cardMeta: {
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+  },
+  cardAddress: {
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
   },

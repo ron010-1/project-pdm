@@ -9,6 +9,7 @@ import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { colors, fontSizes, fontWeights, spacing } from '../../theme';
 import { ageInYears, beneficiarioStatus, statusLabel } from '../../utils/age';
+import { useAddress } from '../../utils/location';
 import { useBeneficiario } from './hooks';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'Detalhe'>;
@@ -16,6 +17,7 @@ type Props = NativeStackScreenProps<FamiliasStackParamList, 'Detalhe'>;
 export function DetalheScreen({ route, navigation }: Props) {
   const { beneficiarioId } = route.params;
   const { data, visitas, loading, error, reload } = useBeneficiario(beneficiarioId);
+  const endereco = useAddress(data?.location.coordinates[1], data?.location.coordinates[0]);
 
   if (error) {
     return (
@@ -71,7 +73,10 @@ export function DetalheScreen({ route, navigation }: Props) {
               <InfoRow label="RESPONSÁVEL" value={`${data.nome_responsavel} — ${data.phone1}`} />
               <InfoRow
                 label="ENDEREÇO"
-                value={`${data.location.coordinates[1].toFixed(5)}, ${data.location.coordinates[0].toFixed(5)}`}
+                value={
+                  endereco ??
+                  `${data.location.coordinates[1].toFixed(5)}, ${data.location.coordinates[0].toFixed(5)}`
+                }
               />
 
               <Button

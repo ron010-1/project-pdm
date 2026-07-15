@@ -12,6 +12,7 @@ import * as beneficiariosApi from '../../api/beneficiarios';
 import { Beneficiario } from '../../api/types';
 import { getVisitaImage } from '../../storage/cache';
 import { Button } from '../../components/Button';
+import { useAddress } from '../../utils/location';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'VisitaDetalhe'>;
 
@@ -20,6 +21,7 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
   const { data: visita, loading, error } = useVisita(visitaId);
   const [beneficiario, setBeneficiario] = useState<Beneficiario | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const endereco = useAddress(beneficiario?.location.coordinates[1], beneficiario?.location.coordinates[0]);
 
   useEffect(() => {
     if (visita) {
@@ -68,9 +70,10 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
           <InfoRow
             label="ENDEREÇO"
             value={
-              beneficiario
+              endereco ??
+              (beneficiario
                 ? `${beneficiario.location.coordinates[1].toFixed(5)}, ${beneficiario.location.coordinates[0].toFixed(5)}`
-                : '—'
+                : '—')
             }
           />
         </Card>
