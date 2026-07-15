@@ -5,9 +5,16 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { StatTile } from '../../components/StatTile';
+import { BarChart } from '../../components/BarChart';
 import { colors, fontSizes, fontWeights, spacing } from '../../theme';
 
 const RESUMO_MOCK = { visitas: 28, familias: 12, pendentes: 3 };
+const VISITAS_POR_SEMANA_MOCK = [
+  { label: 'Sem. 1', value: 6 },
+  { label: 'Sem. 2', value: 9 },
+  { label: 'Sem. 3', value: 5 },
+  { label: 'Sem. 4', value: 8 },
+];
 
 export function RelatoriosScreen() {
   const [inicio, setInicio] = useState('');
@@ -72,6 +79,11 @@ export function RelatoriosScreen() {
             <StatTile value={RESUMO_MOCK.familias} label="Famílias" />
             <StatTile value={RESUMO_MOCK.pendentes} label="Pendentes" />
           </View>
+        </Card>
+
+        <Card style={styles.card}>
+          <Text style={styles.cardTitle}>Visitas por semana</Text>
+          <BarChart data={VISITAS_POR_SEMANA_MOCK} />
         </Card>
       </ScrollView>
     </View>

@@ -1,5 +1,15 @@
-import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  FlatList,
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  UIManager,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { FamiliasStackParamList } from '../../navigation/types';
@@ -8,6 +18,10 @@ import { EmptyState } from '../../components/EmptyState';
 import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { ageInYears, beneficiarioStatus, statusLabel } from '../../utils/age';
 import { useBeneficiarios } from './hooks';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'Lista'>;
 
@@ -23,6 +37,10 @@ export function ListScreen({ navigation }: Props) {
         item.nome.toLowerCase().includes(term) || item.nome_responsavel.toLowerCase().includes(term)
     );
   }, [data, query]);
+
+  useEffect(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  }, [filtered.length]);
 
   return (
     <View style={styles.container}>
