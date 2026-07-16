@@ -2,7 +2,7 @@ import { apiClient } from './client';
 import { Visita, VisitaInput } from './types';
 
 export function list() {
-  return apiClient.get<Visita[]>('/visitas').then((res) => res.data);
+  return apiClient.get<{ count: number; rows: Visita[] }>('/visitas').then((res) => res.data.rows);
 }
 
 export function getById(id: string) {

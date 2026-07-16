@@ -2,6 +2,7 @@ export type FamiliasStackParamList = {
   Lista: undefined;
   Detalhe: { beneficiarioId: string };
   Novo: undefined;
+  Editar: { beneficiarioId: string };
   RegistrarVisita: { beneficiarioId?: string };
   VisitaDetalhe: { visitaId: string };
 };

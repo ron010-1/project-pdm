@@ -10,8 +10,9 @@ export type Beneficiario = {
   data_nascimento: string;
   phone1: string;
   phone2?: string;
+  foto?: string;
   location: GeoPoint;
-  assistenteId: string;
+  assistenteId: string | null;
 };
 
 export type BeneficiarioInput = {
@@ -20,6 +21,7 @@ export type BeneficiarioInput = {
   data_nascimento: string;
   phone1: string;
   phone2?: string;
+  foto?: string;
   location: GeoPoint;
 };
 

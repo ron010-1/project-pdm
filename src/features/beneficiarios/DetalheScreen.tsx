@@ -1,23 +1,57 @@
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import { FamiliasStackParamList } from '../../navigation/types';
 import { Header } from '../../components/Header';
 import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, fontWeights, spacing } from '../../theme';
 import { ageInYears, beneficiarioStatus, statusLabel } from '../../utils/age';
 import { useAddress } from '../../utils/location';
-import { useBeneficiario } from './hooks';
+import { useBeneficiario, useDeleteBeneficiario } from './hooks';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'Detalhe'>;
 
 export function DetalheScreen({ route, navigation }: Props) {
   const { beneficiarioId } = route.params;
   const { data, visitas, loading, error, reload } = useBeneficiario(beneficiarioId);
+  const { remove, submitting: deleting } = useDeleteBeneficiario();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const endereco = useAddress(data?.location.coordinates[1], data?.location.coordinates[0]);
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload])
+  );
+
+  function confirmDelete() {
+    Alert.alert(
+      'Excluir beneficiário',
+      'Essa ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Excluir', style: 'destructive', onPress: handleDelete },
+      ]
+    );
+  }
+
+  async function handleDelete() {
+    setDeleteError(null);
+    try {
+      await remove(beneficiarioId);
+      navigation.goBack();
+    } catch {
+      setDeleteError(
+        'Não foi possível excluir. Se este beneficiário tiver visitas registradas, exclua-as primeiro e tente de novo.'
+      );
+    }
+  }
 
   if (error) {
     return (
@@ -64,7 +98,10 @@ export function DetalheScreen({ route, navigation }: Props) {
 
             <Card style={styles.infoCard}>
               <View style={styles.infoTopRow}>
-                <Text style={styles.name}>{data.nome}</Text>
+                <View style={styles.nameRow}>
+                  {data.foto && <Image source={{ uri: data.foto }} style={styles.avatar} />}
+                  <Text style={styles.name}>{data.nome}</Text>
+                </View>
                 <Badge label={statusLabel(status)} variant={status} />
               </View>
               <Text style={styles.ageLabel}>{ageInYears(data.data_nascimento)} anos</Text>
@@ -83,6 +120,19 @@ export function DetalheScreen({ route, navigation }: Props) {
                 label="Registrar visita"
                 onPress={() => navigation.navigate('RegistrarVisita', { beneficiarioId })}
               />
+              <View style={styles.secondaryActionsRow}>
+                <View style={styles.secondaryActionHalf}>
+                  <Button
+                    label="Editar"
+                    variant="outline"
+                    onPress={() => navigation.navigate('Editar', { beneficiarioId })}
+                  />
+                </View>
+                <View style={styles.secondaryActionHalf}>
+                  <Button label="Excluir" variant="danger" onPress={confirmDelete} loading={deleting} />
+                </View>
+              </View>
+              {deleteError && <ErrorBanner message={deleteError} />}
             </Card>
 
             <Text style={styles.sectionTitle}>HISTÓRICO DE VISITAS</Text>
@@ -149,10 +199,27 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     marginBottom: spacing.lg,
   },
+  secondaryActionsRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  secondaryActionHalf: {
+    flex: 1,
+  },
   infoTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   name: {
     fontSize: fontSizes.lg,
