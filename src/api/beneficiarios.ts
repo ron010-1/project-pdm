@@ -2,7 +2,7 @@ import { apiClient } from './client';
 import { Beneficiario, BeneficiarioInput } from './types';
 
 export function list() {
-  return apiClient.get<Beneficiario[]>('/benefs').then((res) => res.data);
+  return apiClient.get<{ count: number; rows: Beneficiario[] }>('/benefs').then((res) => res.data.rows);
 }
 
 export function getById(id: string) {

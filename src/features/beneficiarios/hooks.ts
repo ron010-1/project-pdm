@@ -77,6 +77,36 @@ export function useCreateBeneficiario() {
   return { create, submitting };
 }
 
+export function useUpdateBeneficiario() {
+  const [submitting, setSubmitting] = useState(false);
+
+  async function update(id: string, input: Partial<BeneficiarioInput>) {
+    setSubmitting(true);
+    try {
+      return await beneficiariosApi.update(id, input);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return { update, submitting };
+}
+
+export function useDeleteBeneficiario() {
+  const [submitting, setSubmitting] = useState(false);
+
+  async function remove(id: string) {
+    setSubmitting(true);
+    try {
+      await beneficiariosApi.remove(id);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return { remove, submitting };
+}
+
 export function useCreateVisita() {
   const [submitting, setSubmitting] = useState(false);
 

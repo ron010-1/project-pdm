@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   LayoutAnimation,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { FamiliasStackParamList } from '../../navigation/types';
 import { Badge } from '../../components/Badge';
 import { EmptyState } from '../../components/EmptyState';
@@ -28,8 +29,14 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'Lista'>;
 
 export function ListScreen({ navigation }: Props) {
-  const { data, loading, error } = useBeneficiarios();
+  const { data, loading, error, reload } = useBeneficiarios();
   const [query, setQuery] = useState('');
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload])
+  );
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
