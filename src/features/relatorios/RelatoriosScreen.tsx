@@ -1,25 +1,53 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import dayjs from 'dayjs';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { StatTile } from '../../components/StatTile';
 import { BarChart } from '../../components/BarChart';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, fontWeights, spacing } from '../../theme';
-
-const RESUMO_MOCK = { visitas: 28, familias: 12, pendentes: 3 };
-const VISITAS_POR_SEMANA_MOCK = [
-  { label: 'Sem. 1', value: 6 },
-  { label: 'Sem. 2', value: 9 },
-  { label: 'Sem. 3', value: 5 },
-  { label: 'Sem. 4', value: 8 },
-];
+import { useBeneficiarios } from '../beneficiarios/hooks';
+import { useVisitasComBeneficiarios } from '../agenda/hooks';
+import { beneficiarioStatus } from '../../utils/age';
 
 export function RelatoriosScreen() {
   const [inicio, setInicio] = useState('');
   const [fim, setFim] = useState('');
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const { data: beneficiarios, loading: loadingBeneficiarios, error: errorBeneficiarios } = useBeneficiarios();
+  const { data: visitas, loading: loadingVisitas, error: errorVisitas } = useVisitasComBeneficiarios();
+
+  const loading = loadingBeneficiarios || loadingVisitas;
+  const error = errorBeneficiarios || errorVisitas;
+
+  const visitasNoMes = useMemo(
+    () => visitas.filter((visita) => dayjs(visita.date).isSame(dayjs(), 'month')).length,
+    [visitas]
+  );
+  const familiasAtivas = useMemo(
+    () => beneficiarios.filter((item) => beneficiarioStatus(item.data_nascimento) === 'ativo').length,
+    [beneficiarios]
+  );
+  const familiasPendentes = useMemo(
+    () => beneficiarios.filter((item) => beneficiarioStatus(item.data_nascimento) === 'alerta').length,
+    [beneficiarios]
+  );
+  const visitasPorSemana = useMemo(() => {
+    const hoje = dayjs();
+    return [3, 2, 1, 0].map((semanasAtras, index) => {
+      const inicioSemana = hoje.subtract(semanasAtras, 'week').startOf('week');
+      const fimSemana = hoje.subtract(semanasAtras, 'week').endOf('week');
+      const value = visitas.filter((visita) => {
+        const data = dayjs(visita.date);
+        return !data.isBefore(inicioSemana) && !data.isAfter(fimSemana);
+      }).length;
+      return { label: `Sem. ${index + 1}`, value };
+    });
+  }, [visitas]);
 
   function handleExport(label: string) {
     if (!inicio || !fim) {
@@ -36,6 +64,8 @@ export function RelatoriosScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {error && <ErrorBanner message={error} />}
+
         <Card style={styles.card}>
           <View style={styles.cardTitleRow}>
             <View style={styles.iconBadge}>
@@ -75,15 +105,15 @@ export function RelatoriosScreen() {
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>Resumo do mês</Text>
           <View style={styles.statsRow}>
-            <StatTile value={RESUMO_MOCK.visitas} label="Visitas" />
-            <StatTile value={RESUMO_MOCK.familias} label="Famílias" />
-            <StatTile value={RESUMO_MOCK.pendentes} label="Pendentes" />
+            <StatTile value={loading ? '—' : visitasNoMes} label="Visitas" />
+            <StatTile value={loading ? '—' : familiasAtivas} label="Famílias" />
+            <StatTile value={loading ? '—' : familiasPendentes} label="Pendentes" />
           </View>
         </Card>
 
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>Visitas por semana</Text>
-          <BarChart data={VISITAS_POR_SEMANA_MOCK} />
+          <BarChart data={visitasPorSemana} />
         </Card>
       </ScrollView>
     </View>

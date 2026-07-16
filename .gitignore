@@ -1,5 +1,8 @@
 CONTEXT.txt
-
+*CLAUDE.md
+*.rtk/
+*.claude/
+*api_benefs/
 # dependencies
 node_modules/
 
