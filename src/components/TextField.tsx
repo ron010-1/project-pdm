@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, TextInput, TextInputProps, View, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSizes, fontWeights, radii, spacing } from '../theme';
+import ErrorIcon from '../../assets/error_icon.svg';
 
 type TextFieldProps = TextInputProps & {
   label: string;
@@ -30,7 +31,12 @@ export function TextField({ label, icon, secure, error, style, ...inputProps }: 
           </Pressable>
         )}
       </View>
-      {!!error && <Text style={styles.errorText}>{error}</Text>}
+      {!!error && (
+        <View style={styles.errorContainer}>
+          <ErrorIcon width={11} height={11} style={styles.errorIcon} />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -65,8 +71,16 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.base,
     color: colors.textPrimary,
   },
-  errorText: {
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: spacing.xs,
+  },
+  errorIcon: {
+    marginRight: spacing.xs,
+    alignSelf: 'center',
+  },
+  errorText: {
     fontSize: fontSizes.sm,
     color: colors.danger,
   },
