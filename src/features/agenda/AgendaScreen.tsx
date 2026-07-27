@@ -1,6 +1,7 @@
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
 import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
@@ -13,11 +14,12 @@ const MESES_ABREVIADOS = ['jan.', 'fev.', 'mar.', 'abr.', 'mai.', 'jun.', 'jul.'
 
 export function AgendaScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { data, loading, error } = useVisitasComBeneficiarios();
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Text style={styles.headerTitle}>Agenda</Text>
         <Pressable
           style={styles.newButton}
@@ -77,8 +79,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 49,
     paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

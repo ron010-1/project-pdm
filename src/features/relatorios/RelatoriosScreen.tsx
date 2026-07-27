@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
@@ -14,6 +15,7 @@ import { useVisitasComBeneficiarios } from '../agenda/hooks';
 import { beneficiarioStatus } from '../../utils/age';
 
 export function RelatoriosScreen() {
+  const insets = useSafeAreaInsets();
   const [inicio, setInicio] = useState('');
   const [fim, setFim] = useState('');
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -59,7 +61,7 @@ export function RelatoriosScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Text style={styles.headerTitle}>Relatórios</Text>
       </View>
 
@@ -126,9 +128,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    height: 49,
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

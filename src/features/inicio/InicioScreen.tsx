@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import dayjs from 'dayjs';
 import { Card } from '../../components/Card';
@@ -14,6 +15,7 @@ import { navigateToFamilias } from '../../navigation/types';
 
 export function InicioScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { nome } = useAuth();
   const { data: beneficiarios } = useBeneficiarios();
   const { data: visitas } = useVisitasComBeneficiarios();
@@ -33,7 +35,10 @@ export function InicioScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={[colors.primary, '#008892']} style={styles.hero}>
+      <LinearGradient
+        colors={[colors.primary, '#008892']}
+        style={[styles.hero, { paddingTop: insets.top + spacing.lg }]}
+      >
         <Text style={styles.heroGreetingLabel}>Bem-vinda,</Text>
         <Text style={styles.heroGreetingName}>{nome ?? 'Assistente Social'}</Text>
 
@@ -121,7 +126,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   hero: {
-    paddingTop: spacing.xxl,
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xl,
   },

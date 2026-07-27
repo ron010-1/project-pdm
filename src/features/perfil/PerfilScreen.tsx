@@ -1,16 +1,18 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 
 export function PerfilScreen() {
+  const insets = useSafeAreaInsets();
   const { userId, nome, logout } = useAuth();
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Text style={styles.headerTitle}>Perfil</Text>
       </View>
 
@@ -36,9 +38,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    height: 49,
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
