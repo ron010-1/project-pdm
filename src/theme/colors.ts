@@ -10,6 +10,8 @@ export const colors = {
   primary: '#0b60b2',
   primaryMuted: 'rgba(11, 96, 178, 0.1)',
 
+  secondary: '#919191',
+
   success: '#03a14a',
   successMuted: 'rgba(3, 161, 74, 0.15)',
 

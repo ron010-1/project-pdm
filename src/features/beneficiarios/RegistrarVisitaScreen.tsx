@@ -21,7 +21,7 @@ import { Header } from '../../components/Header';
 import { TextField } from '../../components/TextField';
 import { Button } from '../../components/Button';
 import { ErrorBanner } from '../../components/ErrorBanner';
-import { colors, fontSizes, radii, spacing } from '../../theme';
+import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { visitaSchema, VisitaFormValues } from './schemas';
 import { useBeneficiarios, useCreateVisita } from './hooks';
 import { uploadMedia } from '../../api/media';
@@ -178,25 +178,33 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
             />
           )}
         />
+        
+        <View style={styles.photoSection}>
+          <Text style={styles.photoLabel}>Fotos/Videos (Opicional)</Text>
+          <View style={styles.mediaRow}>
 
-        <Text style={styles.photoLabel}>Foto ou vídeo da visita (opcional)</Text>
-        <Pressable style={styles.photoPicker} onPress={pickMedia}>
-          {mediaUri && mediaType === 'image' ? (
-            <Image source={{ uri: mediaUri }} style={styles.photoPreview} />
-          ) : mediaUri && mediaType === 'video' ? (
-            <View style={styles.videoPreview}>
-              <Ionicons name="videocam" size={24} color={colors.primary} />
-              <Text style={styles.videoPreviewLabel}>Vídeo selecionado</Text>
-            </View>
-          ) : (
-            <Ionicons name="camera" size={24} color={colors.textSecondary} />
-          )}
-        </Pressable>
-        {uploadError && <Text style={styles.photoError}>{uploadError}</Text>}
-        <Text style={styles.photoNote}>
-          A mídia é enviada para um serviço próprio de imagens/vídeos — a API principal ainda não
-          grava mídia de visita, então o vínculo com esta visita é lembrado só neste dispositivo.
-        </Text>
+            <Pressable style={styles.mediaItem} onPress={pickMedia}>
+              <Ionicons name="camera" size={24} color={colors.secondary} />
+              <Text style={styles.attachButtonText}>Anexar</Text>
+            </Pressable>
+            
+            {mediaUri && (
+              <View style={styles.mediaItem}>
+                {mediaType === 'image' ? (
+                  <Image source={{ uri: mediaUri }} style={styles.mediaPreview} />
+                ) : (
+                  <Image source={{ uri: mediaUri }} style={styles.mediaPreview} />
+                )}
+              </View>
+            )}
+          </View>
+
+          {uploadError && <Text style={styles.photoError}>{uploadError}</Text>}
+          <Text style={styles.photoNote}>
+            A mídia é enviada para um serviço próprio de imagens/vídeos — a API principal ainda não
+            grava mídia de visita, então o vínculo com esta visita é lembrado só neste dispositivo.
+          </Text>
+        </View>
 
         {uploadingMedia ? (
           <ActivityIndicator color={colors.primary} style={styles.uploadIndicator} />
@@ -282,43 +290,57 @@ const styles = StyleSheet.create({
     color: colors.danger,
     marginBottom: spacing.lg,
   },
+  photoSection: {
+    marginBottom: spacing.md,
+  },
   photoLabel: {
     fontSize: fontSizes.md,
     color: colors.textPrimary,
     marginBottom: spacing.sm,
   },
-  photoPicker: {
-    width: 96,
-    height: 96,
-    borderRadius: radii.sm,
-    backgroundColor: colors.inputBackground,
+  mediaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  mediaItem: {
+    width: 100,
+    height: 100,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    marginBottom: spacing.sm,
   },
-  photoPreview: {
+  attachButtonText: {
+    fontSize: fontSizes.xs,
+    color: colors.secondary,
+    marginTop: spacing.xs,
+  },
+  mediaPreview: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
   videoPreview: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: colors.inputBackground,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  videoPreviewLabel: {
-    fontSize: fontSizes.xs,
-    color: colors.textSecondary,
   },
   photoError: {
     fontSize: fontSizes.xs,
     color: colors.danger,
-    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
   },
   photoNote: {
     fontSize: fontSizes.xs,
     color: colors.textSecondary,
-    marginBottom: spacing.xl,
+    marginTop: spacing.sm,
   },
   uploadIndicator: {
     marginVertical: spacing.md,
