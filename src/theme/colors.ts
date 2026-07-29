@@ -23,7 +23,8 @@ export const colors = {
   dangerBackground: '#fce9e9',
 
   statTileBackground: '#ecf3f8',
-  inputBackground: '#eeeeee',
+  inputBackground: '#ffffff',
+  inputStroke: '#e0e5eb',
 };
 
 export type StatusVariant = 'ativo' | 'alerta' | 'finalizado' | 'realizada';

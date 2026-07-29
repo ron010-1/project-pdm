@@ -58,6 +58,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     paddingHorizontal: spacing.md,
     height: 44,
+    borderWidth: 1,
+    borderColor: colors.inputStroke,
   },
   inputRowError: {
     borderWidth: 1,
