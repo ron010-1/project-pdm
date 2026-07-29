@@ -26,6 +26,8 @@ import { visitaSchema, VisitaFormValues } from './schemas';
 import { useBeneficiarios, useCreateVisita } from './hooks';
 import { uploadMedia } from '../../api/media';
 import { saveVisitaMedia } from '../../storage/cache';
+import { VisitaLocation } from '../../components/VisitLocationModal';
+import { VisitLocationField } from '../../components/VisitLocationField';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'RegistrarVisita'>;
 
@@ -41,6 +43,8 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [visitaLocation, setVisitaLocation] = useState<VisitaLocation | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   const beneficiarioSelecionado = beneficiarios.find((item) => item.uuid === beneficiarioId);
   const beneficiariosFiltrados = useMemo(() => {
@@ -78,7 +82,12 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
       setBeneficiarioError('Selecione um beneficiário.');
       return;
     }
+    if (!visitaLocation) {
+      setLocationError('Obtenha a localização da visita.');
+      return;
+    }
     setBeneficiarioError(null);
+    setLocationError(null);
     setSubmitError(null);
     let mediaUrl: string | null = null;
 
@@ -102,6 +111,7 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
         ...values,
         beneficiarioId,
         imagens: mediaUrl ? [mediaUrl] : undefined,
+        // visitaLocation: visitaLocation ? { latitude: visitaLocation.latitude, longitude: visitaLocation.longitude } : undefined,
       });
 
       if (mediaUrl) {
@@ -205,6 +215,15 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
             grava mídia de visita, então o vínculo com esta visita é lembrado só neste dispositivo.
           </Text>
         </View>
+
+        <VisitLocationField
+          value={visitaLocation}
+          onChange={(location) => {
+            setVisitaLocation(location);
+            setLocationError(null);
+          }}
+          error={locationError}
+        />
 
         {uploadingMedia ? (
           <ActivityIndicator color={colors.primary} style={styles.uploadIndicator} />
