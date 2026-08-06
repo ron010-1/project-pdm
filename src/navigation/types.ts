@@ -12,7 +12,14 @@ export type MainTabsParamList = {
   Familias: undefined;
   Agenda: undefined;
   Relatorios: undefined;
+  Assistentes: undefined;
   Perfil: undefined;
+};
+
+export type AssistentesStackParamList = {
+  Lista: undefined;
+  Novo: undefined;
+  Editar: { assistenteId: string };
 };
 
 // React Navigation's typing for cross-tab navigation into a nested stack screen

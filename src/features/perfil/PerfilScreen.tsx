@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export function PerfilScreen() {
   const insets = useSafeAreaInsets();
-  const { userId, nome, logout } = useAuth();
+  const { userId, role, nome, logout } = useAuth();
 
   return (
     <View style={styles.container}>
@@ -21,7 +21,8 @@ export function PerfilScreen() {
           <View style={styles.avatar}>
             <Ionicons name="person" size={28} color={colors.primary} />
           </View>
-          <Text style={styles.name}>{nome ?? 'Assistente Social'}</Text>
+          <Text style={styles.name}>{nome ?? (role === 'admin' ? 'Administrador' : 'Assistente Social')}</Text>
+          <Text style={styles.role}>{role === 'admin' ? 'Administrador' : 'Assistente social'}</Text>
           <Text style={styles.label}>ID DA CONTA</Text>
           <Text style={styles.value}>{userId ?? '—'}</Text>
         </Card>
@@ -71,6 +72,10 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     fontWeight: fontWeights.bold,
     color: colors.textPrimary,
+  },
+  role: {
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
   },
   label: {
     fontSize: fontSizes.xs,

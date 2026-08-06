@@ -6,6 +6,8 @@ import { FamiliasStack } from './FamiliasStack';
 import { AgendaScreen } from '../features/agenda/AgendaScreen';
 import { RelatoriosScreen } from '../features/relatorios/RelatoriosScreen';
 import { PerfilScreen } from '../features/perfil/PerfilScreen';
+import { AssistentesStack } from './AssistentesStack';
+import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -15,10 +17,13 @@ const ICONS: Record<keyof MainTabsParamList, keyof typeof Ionicons.glyphMap> = {
   Familias: 'people',
   Agenda: 'calendar',
   Relatorios: 'document-text',
+  Assistentes: 'person-add',
   Perfil: 'person',
 };
 
 export function MainTabs() {
+  const { role } = useAuth();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -36,6 +41,7 @@ export function MainTabs() {
       <Tab.Screen name="Familias" component={FamiliasStack} options={{ title: 'Famílias' }} />
       <Tab.Screen name="Agenda" component={AgendaScreen} />
       <Tab.Screen name="Relatorios" component={RelatoriosScreen} options={{ title: 'Relatórios' }} />
+      {role === 'admin' && <Tab.Screen name="Assistentes" component={AssistentesStack} />}
       <Tab.Screen name="Perfil" component={PerfilScreen} />
     </Tab.Navigator>
   );
