@@ -82,10 +82,6 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
       setBeneficiarioError('Selecione um beneficiário.');
       return;
     }
-    if (!visitaLocation) {
-      setLocationError('Obtenha a localização da visita.');
-      return;
-    }
     setBeneficiarioError(null);
     setLocationError(null);
     setSubmitError(null);
@@ -111,7 +107,9 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
         ...values,
         beneficiarioId,
         imagens: mediaUrl ? [mediaUrl] : undefined,
-        // visitaLocation: visitaLocation ? { latitude: visitaLocation.latitude, longitude: visitaLocation.longitude } : undefined,
+        location: visitaLocation
+          ? { type: 'Point', coordinates: [visitaLocation.longitude, visitaLocation.latitude] }
+          : undefined,
       });
 
       if (mediaUrl) {

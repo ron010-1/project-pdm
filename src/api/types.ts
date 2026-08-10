@@ -34,6 +34,7 @@ export type Visita = {
   assistenteId: string;
   beneficiarioId: string;
   imagens?: string[];
+  location?: GeoPoint | null;
 };
 
 export type VisitaInput = {
@@ -43,6 +44,7 @@ export type VisitaInput = {
   estimulo_familiar: string;
   beneficiarioId: string;
   imagens?: string[];
+  location?: GeoPoint | null;
 };
 
 export type AssistenteSocial = {
