@@ -13,7 +13,6 @@ export type Beneficiario = {
   foto?: string;
   location: GeoPoint;
   assistenteId: string | null;
-  /** Data de cadastro, usada para recortar relatórios por período. */
   createdAt?: string;
 };
 
@@ -35,8 +34,6 @@ export type Visita = {
   estimulo_familiar: string;
   assistenteId: string;
   beneficiarioId: string;
-  // A API guarda cada imagem como uma linha da tabela `imagem`, mas o controller
-  // (mapVisitaResponse) achata para uma lista de caminhos/URLs antes de responder.
   imagens?: string[];
 };
 

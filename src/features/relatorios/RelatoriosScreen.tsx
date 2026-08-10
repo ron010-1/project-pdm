@@ -55,10 +55,6 @@ export function RelatoriosScreen() {
     });
   }, [visitas]);
 
-  /**
-   * Recorte do período: visitas entram pela data da visita, beneficiários pela
-   * data de cadastro (`createdAt`, devolvido pela API).
-   */
   const dadosDoPeriodo = useMemo<DadosRelatorio | null>(() => {
     if (!inicio || !fim) return null;
 

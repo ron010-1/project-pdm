@@ -117,8 +117,6 @@ export async function exportarPdf(dados: DadosRelatorio) {
 }
 
 export async function exportarCsv(dados: DadosRelatorio) {
-  // O Excel em pt-BR abre CSV separado por ponto e vírgula; o BOM evita
-  // que os acentos apareçam quebrados.
   const arquivo = new File(Paths.cache, nomeArquivo('csv'));
   if (arquivo.exists) arquivo.delete();
   arquivo.create();

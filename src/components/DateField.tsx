@@ -9,7 +9,6 @@ import ErrorIcon from '../../assets/error_icon.svg';
 
 type DateFieldProps = {
   label: string;
-  /** Data no formato da API (AAAA-MM-DD). String vazia quando nada foi escolhido. */
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -35,8 +34,6 @@ export function DateField({
   const selectedDate = parsed?.isValid() ? parsed.toDate() : new Date();
 
   function handleChange(event: DateTimePickerEvent, date?: Date) {
-    // No Android o picker é um diálogo próprio: fecha sozinho e avisa se foi
-    // confirmado ou cancelado. No iOS ele fica embutido no nosso modal.
     if (Platform.OS === 'android') {
       setOpen(false);
       if (event.type === 'set' && date) {
@@ -96,11 +93,12 @@ export function DateField({
                 onChange={handleChange}
                 minimumDate={minimumDate}
                 maximumDate={maximumDate}
+                themeVariant="light"
+                textColor={colors.textPrimary}
               />
               <Button
                 label="Pronto"
                 onPress={() => {
-                  // Sem interação o picker não dispara onChange: confirma o que está visível.
                   if (!parsed?.isValid()) onChange(dayjs(selectedDate).format(API_FORMAT));
                   setOpen(false);
                 }}
