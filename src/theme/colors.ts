@@ -8,6 +8,7 @@ export const colors = {
   textInverse: '#fcfcfc',
 
   primary: '#0b60b2',
+  primaryBackground: '#dfeaf5',
   primaryMuted: 'rgba(11, 96, 178, 0.1)',
 
   secondary: '#919191',

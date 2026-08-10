@@ -1,4 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '../../components/Card';
 import { ErrorBanner } from '../../components/ErrorBanner';
@@ -6,6 +8,8 @@ import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 import { useMe } from './hooks';
 import { MeAssistente, MeResponse } from '../../api/types';
+import * as assistentesApi from '../../api/assistentes';
+import { EditPerfilModal } from './EditPerfilModal';
 import EmailIcon from '../../../assets/email_icon.svg';
 import PhoneIcon from '../../../assets/phone_icon.svg';
 import LogoutIcon from '../../../assets/logout_icon.svg';
@@ -16,8 +20,9 @@ function isAssistente(data: MeResponse): data is MeAssistente {
 
 export function PerfilScreen() {
   const insets = useSafeAreaInsets();
-  const { logout } = useAuth();
-  const { data, loading, error } = useMe();
+  const { logout, userId } = useAuth();
+  const { data, loading, error, reload } = useMe();
+  const [editing, setEditing] = useState(false);
 
   const assistente = data && isAssistente(data) ? data : null;
   const nome = assistente?.nome ?? 'Administrador';
@@ -49,6 +54,19 @@ export function PerfilScreen() {
               </Card>
 
               <Card style={styles.infoCard}>
+                <View style={styles.infoCardHeader}>
+                  <Text style={styles.infoCardTitle}>Informações de contato</Text>
+                  {assistente && (
+                    <Pressable
+                      accessibilityLabel="Editar informações de contato"
+                      hitSlop={8}
+                      style={styles.editButton}
+                      onPress={() => setEditing(true)}
+                    >
+                      <Ionicons name="pencil" size={17} color={colors.primary} />
+                    </Pressable>
+                  )}
+                </View>
                 <View style={styles.infoRow}>
                   <EmailIcon width={16} height={16} />
                   <Text style={styles.infoText}>{data.email}</Text>
@@ -72,6 +90,18 @@ export function PerfilScreen() {
           )
         )}
       </View>
+
+      {assistente && userId && (
+        <EditPerfilModal
+          visible={editing}
+          initialValues={{ email: assistente.email, telefone: assistente.telefone }}
+          onClose={() => setEditing(false)}
+          onSave={async (values) => {
+            await assistentesApi.update(userId, values);
+            await reload();
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -131,6 +161,30 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     padding: 0,
+  },
+  infoCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xs,
+  },
+  infoCardTitle: {
+    fontSize: fontSizes.xs,
+    fontWeight: fontWeights.semibold,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+  },
+  editButton: {
+    width: spacing.xxl,
+    height: spacing.xxl,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    backgroundColor: colors.primaryBackground,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   infoRow: {
     flexDirection: 'row',
