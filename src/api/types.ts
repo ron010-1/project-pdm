@@ -13,6 +13,8 @@ export type Beneficiario = {
   foto?: string;
   location: GeoPoint;
   assistenteId: string | null;
+  /** Data de cadastro, usada para recortar relatórios por período. */
+  createdAt?: string;
 };
 
 export type BeneficiarioInput = {

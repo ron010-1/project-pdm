@@ -7,6 +7,7 @@ import MapView, { Marker, MapPressEvent } from 'react-native-maps';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { TextField } from '../../components/TextField';
+import { DateField } from '../../components/DateField';
 import { Button } from '../../components/Button';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, radii, spacing } from '../../theme';
@@ -157,12 +158,12 @@ export function BeneficiarioForm({
         control={control}
         name="data_nascimento"
         render={({ field: { onChange, value } }) => (
-          <TextField
+          <DateField
             label="Data de nascimento"
-            placeholder="AAAA-MM-DD"
             value={value}
-            onChangeText={onChange}
+            onChange={onChange}
             error={errors.data_nascimento?.message}
+            maximumDate={new Date()}
           />
         )}
       />

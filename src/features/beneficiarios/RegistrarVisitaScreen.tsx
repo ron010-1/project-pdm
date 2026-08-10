@@ -19,6 +19,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { FamiliasStackParamList } from '../../navigation/types';
 import { Header } from '../../components/Header';
 import { TextField } from '../../components/TextField';
+import { DateField } from '../../components/DateField';
 import { Button } from '../../components/Button';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
@@ -141,7 +142,13 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
           control={control}
           name="date"
           render={({ field: { onChange, value } }) => (
-            <TextField label="Data" placeholder="AAAA-MM-DD" value={value} onChangeText={onChange} error={errors.date?.message} />
+            <DateField
+              label="Data"
+              value={value}
+              onChange={onChange}
+              error={errors.date?.message}
+              maximumDate={new Date()}
+            />
           )}
         />
         <Controller

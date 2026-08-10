@@ -15,6 +15,7 @@ import { ageInYears, beneficiarioStatus, statusLabel } from '../../utils/age';
 import { useAddress } from '../../utils/location';
 import { useBeneficiario, useDeleteBeneficiario } from './hooks';
 import { resolveMediaUrl } from '../../api/media';
+import { rotuloCadastradoPor, useAssistentes } from '../assistentes/hooks';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'Detalhe'>;
 
@@ -22,6 +23,7 @@ export function DetalheScreen({ route, navigation }: Props) {
   const { beneficiarioId } = route.params;
   const { data, visitas, loading, error, reload } = useBeneficiario(beneficiarioId);
   const { remove, submitting: deleting } = useDeleteBeneficiario();
+  const { nomePorId } = useAssistentes();
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const endereco = useAddress(data?.location.coordinates[1], data?.location.coordinates[0]);
 
@@ -118,6 +120,7 @@ export function DetalheScreen({ route, navigation }: Props) {
                   `${data.location.coordinates[1].toFixed(5)}, ${data.location.coordinates[0].toFixed(5)}`
                 }
               />
+              <InfoRow label="CADASTRADO POR" value={rotuloCadastradoPor(data.assistenteId, nomePorId)} />
 
               <Button
                 label="Registrar visita"

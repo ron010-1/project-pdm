@@ -8,7 +8,7 @@ import { FamiliasStackParamList } from '../../navigation/types';
 import { Header } from '../../components/Header';
 import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
-import { TextField } from '../../components/TextField';
+import { DateField } from '../../components/DateField';
 import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { useUpdateVisitaDate, useVisita } from './hooks';
 import * as beneficiariosApi from '../../api/beneficiarios';
@@ -109,7 +109,12 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
           {editingDate && (
             <View>
               {dateError && <ErrorBanner message={dateError} />}
-              <TextField label="Nova data" placeholder="AAAA-MM-DD" value={dateDraft} onChangeText={setDateDraft} />
+              <DateField
+                label="Nova data"
+                value={dateDraft}
+                onChange={setDateDraft}
+                maximumDate={new Date()}
+              />
               <View style={styles.dateEditButtons}>
                 <View style={styles.dateEditButton}>
                   <Button label="Cancelar" variant="outline" onPress={() => setEditingDate(false)} />

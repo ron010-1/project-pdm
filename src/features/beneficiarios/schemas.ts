@@ -1,11 +1,12 @@
 import { z } from 'zod';
+import { telefoneOpcionalSchema, telefoneSchema } from '../../utils/phone';
 
 export const beneficiarioSchema = z.object({
   nome: z.string().min(1, 'Informe o nome da criança.'),
   nome_responsavel: z.string().min(1, 'Informe o nome do responsável.'),
   data_nascimento: z.string().min(1, 'Informe a data de nascimento.'),
-  phone1: z.string().min(1, 'Informe um telefone de contato.'),
-  phone2: z.string().optional(),
+  phone1: telefoneSchema,
+  phone2: telefoneOpcionalSchema,
   latitude: z.number({ message: 'Marque o endereço no mapa.' }),
   longitude: z.number({ message: 'Marque o endereço no mapa.' }),
 });
