@@ -13,7 +13,7 @@ import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { useUpdateVisitaDate, useVisita } from './hooks';
 import * as beneficiariosApi from '../../api/beneficiarios';
 import { Beneficiario } from '../../api/types';
-import { getVisitaMedia, VisitaMedia } from '../../storage/cache';
+import { isVideoUrl, resolveMediaUrl } from '../../api/media';
 import { Button } from '../../components/Button';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { useAddress } from '../../utils/location';
@@ -27,7 +27,6 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
   const { userId } = useAuth();
   const { updateDate, submitting: savingDate } = useUpdateVisitaDate();
   const [beneficiario, setBeneficiario] = useState<Beneficiario | null>(null);
-  const [media, setMedia] = useState<VisitaMedia | null>(null);
   const [editingDate, setEditingDate] = useState(false);
   const [dateDraft, setDateDraft] = useState('');
   const [dateError, setDateError] = useState<string | null>(null);
@@ -56,9 +55,7 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
     }
   }, [visita]);
 
-  useEffect(() => {
-    getVisitaMedia(visitaId).then(setMedia);
-  }, [visitaId]);
+  const mediaUrl = resolveMediaUrl(visita?.imagens?.[0]);
 
   if (error) {
     return (
@@ -140,13 +137,15 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
           <Text style={styles.relatoText}>{visita.evolucao}</Text>
         </Card>
 
-        {media && (
+        {mediaUrl && (
           <>
-            <Text style={styles.sectionTitle}>{media.type === 'video' ? 'VÍDEO DA VISITA' : 'FOTO DA VISITA'}</Text>
-            {media.type === 'video' ? (
-              <VideoPreview uri={media.url} />
+            <Text style={styles.sectionTitle}>
+              {isVideoUrl(mediaUrl) ? 'VÍDEO DA VISITA' : 'FOTO DA VISITA'}
+            </Text>
+            {isVideoUrl(mediaUrl) ? (
+              <VideoPreview uri={mediaUrl} />
             ) : (
-              <Image source={{ uri: media.url }} style={styles.photo} />
+              <Image source={{ uri: mediaUrl }} style={styles.photo} />
             )}
           </>
         )}

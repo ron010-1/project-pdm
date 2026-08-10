@@ -25,7 +25,6 @@ import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { visitaSchema, VisitaFormValues } from './schemas';
 import { useBeneficiarios, useCreateVisita } from './hooks';
 import { uploadMedia } from '../../api/media';
-import { saveVisitaMedia } from '../../storage/cache';
 import { VisitaLocation } from '../../components/VisitLocationModal';
 import { VisitLocationField } from '../../components/VisitLocationField';
 
@@ -107,16 +106,12 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
     }
 
     try {
-      const visita = await create({
+      await create({
         ...values,
         beneficiarioId,
         imagens: mediaUrl ? [mediaUrl] : undefined,
         // visitaLocation: visitaLocation ? { latitude: visitaLocation.latitude, longitude: visitaLocation.longitude } : undefined,
       });
-
-      if (mediaUrl) {
-        await saveVisitaMedia(visita.uuid, { url: mediaUrl, type: mediaType });
-      }
 
       navigation.goBack();
     } catch {
@@ -211,8 +206,8 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
 
           {uploadError && <Text style={styles.photoError}>{uploadError}</Text>}
           <Text style={styles.photoNote}>
-            A mídia é enviada para um serviço próprio de imagens/vídeos — a API principal ainda não
-            grava mídia de visita, então o vínculo com esta visita é lembrado só neste dispositivo.
+            A mídia é enviada para a API e fica vinculada a esta visita, disponível em qualquer
+            aparelho.
           </Text>
         </View>
 

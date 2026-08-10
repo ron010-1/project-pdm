@@ -14,6 +14,7 @@ import { colors, fontSizes, fontWeights, spacing } from '../../theme';
 import { ageInYears, beneficiarioStatus, statusLabel } from '../../utils/age';
 import { useAddress } from '../../utils/location';
 import { useBeneficiario, useDeleteBeneficiario } from './hooks';
+import { resolveMediaUrl } from '../../api/media';
 
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'Detalhe'>;
 
@@ -99,7 +100,9 @@ export function DetalheScreen({ route, navigation }: Props) {
             <Card style={styles.infoCard}>
               <View style={styles.infoTopRow}>
                 <View style={styles.nameRow}>
-                  {data.foto && <Image source={{ uri: data.foto }} style={styles.avatar} />}
+                  {resolveMediaUrl(data.foto) && (
+                    <Image source={{ uri: resolveMediaUrl(data.foto)! }} style={styles.avatar} />
+                  )}
                   <Text style={styles.name}>{data.nome}</Text>
                 </View>
                 <Badge label={statusLabel(status)} variant={status} />

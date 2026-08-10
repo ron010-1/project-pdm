@@ -12,7 +12,7 @@ import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, radii, spacing } from '../../theme';
 import { beneficiarioSchema, BeneficiarioFormValues } from './schemas';
 import { BeneficiarioInput } from '../../api/types';
-import { uploadMedia } from '../../api/media';
+import { resolveMediaUrl, uploadMedia } from '../../api/media';
 
 type Props = {
   defaultValues: BeneficiarioFormValues;
@@ -39,7 +39,7 @@ export function BeneficiarioForm({
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
   });
-  const [photoUri, setPhotoUri] = useState<string | null>(fotoInicial ?? null);
+  const [photoUri, setPhotoUri] = useState<string | null>(resolveMediaUrl(fotoInicial));
   const [photoChanged, setPhotoChanged] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);

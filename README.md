@@ -5,8 +5,7 @@ App mobile em React Native + TypeScript (Expo) para o Programa Criança Feliz, c
 ## Pré-requisitos
 
 - Node.js 18+ e npm
-- API `criancaFeliz-pw1` rodando localmente (ver README daquele repo): `docker-compose up -d` para subir Postgres/PostGIS, depois `npm install && npm run dev` — serve em `http://localhost:3333`
-- Microserviço `serviceImages` rodando localmente (`npm install && npm run dev`, precisa de `.env` com `SUPABASE_URL`, `SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` — ver `.env.example` daquele repo) — serve em `http://localhost:3000`
+- API `criancaFeliz-pw1` rodando localmente (ver README daquele repo): `docker-compose up -d` para subir Postgres/PostGIS, depois `npm install && npm run dev` — serve em `http://localhost:3333`. Ela também recebe e serve as imagens/vídeos, então não é preciso mais nenhum serviço separado de mídia.
 
 ## Setup
 
@@ -15,10 +14,12 @@ npm install
 cp .env.example .env
 ```
 
-Ajuste `EXPO_PUBLIC_API_URL` e `EXPO_PUBLIC_IMAGE_SERVICE_URL` no `.env` conforme onde o app vai rodar:
+Ajuste `EXPO_PUBLIC_API_URL` no `.env` conforme onde o app vai rodar:
 
-- Emulador Android: `http://10.0.2.2:3333` e `http://10.0.2.2:3000`
-- iOS simulator / web / Expo Go no mesmo Wi-Fi: `http://<ip-da-maquina>:3333` e `http://<ip-da-maquina>:3000`
+- Emulador Android: `http://10.0.2.2:3333`
+- iOS simulator / web / Expo Go no mesmo Wi-Fi: `http://<ip-da-maquina>:3333`
+
+Atenção: em dispositivo físico o IP da máquina muda quando o DHCP renova a concessão. Se o app parar de carregar dados do nada, confira o IP atual (`ipconfig`) antes de procurar outra causa — e lembre que `EXPO_PUBLIC_*` é embutido no bundle, então é preciso reiniciar o `npx expo start` depois de mexer no `.env`.
 
 ## Rodando
 
@@ -39,7 +40,11 @@ Abra no Expo Go (celular) ou em um emulador/simulador a partir do menu do Metro.
 
 ## Upload de imagem/vídeo
 
-A API `criancaFeliz-pw1` não persiste mídia de visita (`POST /visitas` descarta o campo `imagens` — o model `Imagem` existe mas nenhum controller grava linha nele). Por isso, a foto ou vídeo anexado na tela de registro de visita é enviado de verdade para o microserviço próprio `serviceImages` (`POST /upload`, campo `image`, aceita qualquer tipo de arquivo — retorna uma URL pública do Supabase Storage), e o vínculo entre essa URL/tipo e a visita é lembrado localmente no dispositivo (`AsyncStorage`, `src/storage/cache.ts`), já que nenhum dos dois backends guarda essa associação. A visualização usa `<Image>` pra fotos e `expo-video` (`VideoView`) com controles nativos pra vídeos.
+A própria API guarda os arquivos. O app envia a mídia para `POST /uploads` (campo `file`, multipart, autenticado) e recebe de volta um **caminho relativo** — ex.: `/uploads/uuid.jpg`. Esse caminho é o que vai para o campo `foto` do beneficiário e para `imagens` da visita; a API serve os arquivos estaticamente em `/uploads`.
+
+O caminho é relativo de propósito: o endereço do servidor muda (IP da máquina em desenvolvimento, deploy depois) sem invalidar o que já está no banco. Na hora de exibir, `resolveMediaUrl()` (`src/api/media.ts`) prefixa com `EXPO_PUBLIC_API_URL` — e devolve o valor intacto quando ele já é uma URL absoluta, para que registros antigos (criados quando a mídia ia para um serviço externo) continuem funcionando.
+
+A visualização usa `<Image>` pra fotos e `expo-video` (`VideoView`) com controles nativos pra vídeos; como a API não guarda o tipo da mídia, ele é inferido pela extensão do arquivo (`isVideoUrl()`).
 
 ## Mapa
 
@@ -53,5 +58,5 @@ O mapa de seleção de endereço (`react-native-maps`) funciona no Expo Go em de
 
 - Relatórios usa dados de exemplo — não há endpoint de relatório na API.
 - A Agenda no Figma prevê status "agendada"/"cancelada" (visitas futuras), mas o model `Visita` da API só registra visitas já realizadas (sem campo de status/agendamento). Por isso a Agenda deste app lista só visitas já registradas, todas com badge "Realizada", sem os filtros de status do Figma — não dava pra fabricar um estado de agendamento que a API não tem.
-- O vínculo foto↔visita só existe no dispositivo que fez o upload (reinstalar o app ou trocar de aparelho perde essa referência, embora a imagem em si continue no Supabase Storage).
+- Os arquivos enviados ficam no disco da máquina que roda a API e são servidos sem autenticação em `/uploads` — o nome é um uuid não adivinhável, mas quem tiver o link acessa. Recriar o servidor sem um volume persistente perde os arquivos.
 - O nome exibido no Início/Perfil vem de `GET /assists/:id` a partir do uuid do token — se o usuário logado for um Admin (não um Assistente Social), essa busca falha silenciosamente e o nome genérico "Assistente Social" é mostrado no lugar.
