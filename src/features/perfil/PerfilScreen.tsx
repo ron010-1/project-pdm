@@ -9,7 +9,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useMe } from './hooks';
 import { MeAssistente, MeResponse } from '../../api/types';
 import * as assistentesApi from '../../api/assistentes';
+import * as adminsApi from '../../api/admins';
 import { EditPerfilModal } from './EditPerfilModal';
+import { EditAdminEmailModal } from './EditAdminEmailModal';
 import EmailIcon from '../../../assets/email_icon.svg';
 import PhoneIcon from '../../../assets/phone_icon.svg';
 import LogoutIcon from '../../../assets/logout_icon.svg';
@@ -20,9 +22,10 @@ function isAssistente(data: MeResponse): data is MeAssistente {
 
 export function PerfilScreen() {
   const insets = useSafeAreaInsets();
-  const { logout, userId } = useAuth();
+  const { logout, userId, updateNome } = useAuth();
   const { data, loading, error, reload } = useMe();
-  const [editing, setEditing] = useState(false);
+  const [editingContato, setEditingContato] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
 
   const assistente = data && isAssistente(data) ? data : null;
   const nome = assistente?.nome ?? 'Administrador';
@@ -56,12 +59,21 @@ export function PerfilScreen() {
               <Card style={styles.infoCard}>
                 <View style={styles.infoCardHeader}>
                   <Text style={styles.infoCardTitle}>Informações de contato</Text>
-                  {assistente && (
+                  {assistente ? (
                     <Pressable
                       accessibilityLabel="Editar informações de contato"
                       hitSlop={8}
                       style={styles.editButton}
-                      onPress={() => setEditing(true)}
+                      onPress={() => setEditingContato(true)}
+                    >
+                      <Ionicons name="pencil" size={17} color={colors.primary} />
+                    </Pressable>
+                  ) : (
+                    <Pressable
+                      accessibilityLabel="Editar email"
+                      hitSlop={8}
+                      style={styles.editButton}
+                      onPress={() => setEditingEmail(true)}
                     >
                       <Ionicons name="pencil" size={17} color={colors.primary} />
                     </Pressable>
@@ -93,11 +105,24 @@ export function PerfilScreen() {
 
       {assistente && userId && (
         <EditPerfilModal
-          visible={editing}
-          initialValues={{ email: assistente.email, telefone: assistente.telefone }}
-          onClose={() => setEditing(false)}
+          visible={editingContato}
+          initialValues={{ nome: assistente.nome, email: assistente.email, telefone: assistente.telefone }}
+          onClose={() => setEditingContato(false)}
           onSave={async (values) => {
-            await assistentesApi.update(userId, values);
+            const updated = await assistentesApi.update(userId, values);
+            updateNome(updated.nome);
+            await reload();
+          }}
+        />
+      )}
+
+      {!assistente && data && (
+        <EditAdminEmailModal
+          visible={editingEmail}
+          initialValues={{ email: data.email }}
+          onClose={() => setEditingEmail(false)}
+          onSave={async (values) => {
+            await adminsApi.update(values);
             await reload();
           }}
         />

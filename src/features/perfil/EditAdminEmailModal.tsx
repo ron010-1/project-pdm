@@ -7,16 +7,16 @@ import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, fontWeights, spacing } from '../../theme';
-import { editPerfilSchema, EditPerfilValues } from './schemas';
+import { editAdminEmailSchema, EditAdminEmailValues } from './schemas';
 
 type Props = {
   visible: boolean;
-  initialValues: EditPerfilValues;
+  initialValues: EditAdminEmailValues;
   onClose: () => void;
-  onSave: (values: EditPerfilValues) => Promise<void>;
+  onSave: (values: EditAdminEmailValues) => Promise<void>;
 };
 
-export function EditPerfilModal({ visible, initialValues, onClose, onSave }: Props) {
+export function EditAdminEmailModal({ visible, initialValues, onClose, onSave }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,8 +25,8 @@ export function EditPerfilModal({ visible, initialValues, onClose, onSave }: Pro
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<EditPerfilValues>({
-    resolver: zodResolver(editPerfilSchema),
+  } = useForm<EditAdminEmailValues>({
+    resolver: zodResolver(editAdminEmailSchema),
     defaultValues: initialValues,
   });
 
@@ -38,14 +38,14 @@ export function EditPerfilModal({ visible, initialValues, onClose, onSave }: Pro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
-  async function submit(values: EditPerfilValues) {
+  async function submit(values: EditAdminEmailValues) {
     setSubmitting(true);
     setError(null);
     try {
       await onSave(values);
       onClose();
     } catch {
-      setError('Não foi possível salvar suas informações. Tente novamente.');
+      setError('Não foi possível salvar seu email. Tente novamente.');
     } finally {
       setSubmitting(false);
     }
@@ -56,28 +56,13 @@ export function EditPerfilModal({ visible, initialValues, onClose, onSave }: Pro
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Editar informações</Text>
+            <Text style={styles.headerTitle}>Editar email</Text>
             <Pressable onPress={onClose} hitSlop={8} style={styles.closeButton}>
               <Ionicons name="close" size={20} color={colors.textPrimary} />
             </Pressable>
           </View>
 
           {error && <ErrorBanner message={error} />}
-
-          <Controller
-            control={control}
-            name="nome"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextField
-                label="Nome"
-                icon="person"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                error={errors.nome?.message}
-              />
-            )}
-          />
 
           <Controller
             control={control}
@@ -92,22 +77,6 @@ export function EditPerfilModal({ visible, initialValues, onClose, onSave }: Pro
                 autoCapitalize="none"
                 keyboardType="email-address"
                 error={errors.email?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="telefone"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextField
-                label="Telefone"
-                icon="call"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                keyboardType="phone-pad"
-                error={errors.telefone?.message}
               />
             )}
           />
