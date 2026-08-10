@@ -56,3 +56,16 @@ export type AssistenteSocial = {
 export type LoginResponse = {
   token: string;
 };
+
+export type MeAdmin = {
+  uuid: string;
+  email: string;
+};
+
+export type MeAssistente = {
+  nome: string;
+  email: string;
+  telefone: string;
+};
+
+export type MeResponse = MeAdmin | MeAssistente;
