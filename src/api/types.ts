@@ -35,6 +35,7 @@ export type Visita = {
   assistenteId: string;
   beneficiarioId: string;
   imagens?: string[];
+  location?: GeoPoint | null;
 };
 
 export type VisitaInput = {
@@ -44,6 +45,7 @@ export type VisitaInput = {
   estimulo_familiar: string;
   beneficiarioId: string;
   imagens?: string[];
+  location?: GeoPoint | null;
 };
 
 export type AssistenteSocial = {
@@ -57,3 +59,16 @@ export type AssistenteSocial = {
 export type LoginResponse = {
   token: string;
 };
+
+export type MeAdmin = {
+  uuid: string;
+  email: string;
+};
+
+export type MeAssistente = {
+  nome: string;
+  email: string;
+  telefone: string;
+};
+
+export type MeResponse = MeAdmin | MeAssistente;

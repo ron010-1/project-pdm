@@ -1,14 +1,36 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '../../components/Card';
-import { Button } from '../../components/Button';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, fontWeights, radii, spacing } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
+import { useMe } from './hooks';
+import { MeAssistente, MeResponse } from '../../api/types';
+import * as assistentesApi from '../../api/assistentes';
+import * as adminsApi from '../../api/admins';
+import { EditPerfilModal } from './EditPerfilModal';
+import { EditAdminEmailModal } from './EditAdminEmailModal';
+import EmailIcon from '../../../assets/email_icon.svg';
+import PhoneIcon from '../../../assets/phone_icon.svg';
+import LogoutIcon from '../../../assets/logout_icon.svg';
+
+function isAssistente(data: MeResponse): data is MeAssistente {
+  return 'telefone' in data;
+}
 
 export function PerfilScreen() {
   const insets = useSafeAreaInsets();
-  const { userId, role, nome, logout } = useAuth();
+  const { logout, userId, updateNome } = useAuth();
+  const { data, loading, error, reload } = useMe();
+  const [editingContato, setEditingContato] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
+
+  const assistente = data && isAssistente(data) ? data : null;
+  const nome = assistente?.nome ?? 'Administrador';
+  const roleLabel = assistente ? 'Assistente Social' : 'Administrador';
+  const initial = (assistente?.nome ?? data?.email ?? '?').charAt(0).toUpperCase();
 
   return (
     <View style={styles.container}>
@@ -17,18 +39,94 @@ export function PerfilScreen() {
       </View>
 
       <View style={styles.content}>
-        <Card style={styles.card}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={28} color={colors.primary} />
-          </View>
-          <Text style={styles.name}>{nome ?? (role === 'admin' ? 'Administrador' : 'Assistente Social')}</Text>
-          <Text style={styles.role}>{role === 'admin' ? 'Administrador' : 'Assistente social'}</Text>
-          <Text style={styles.label}>ID DA CONTA</Text>
-          <Text style={styles.value}>{userId ?? '—'}</Text>
-        </Card>
+        {!!error && <ErrorBanner message={error} />}
 
-        <Button label="Sair" variant="outline" onPress={logout} />
+        {loading ? (
+          <View style={styles.loading}>
+            <ActivityIndicator color={colors.primary} />
+          </View>
+        ) : (
+          data && (
+            <>
+              <Card style={styles.profileCard}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{initial}</Text>
+                </View>
+                <Text style={styles.name}>{nome}</Text>
+                <Text style={styles.role}>{roleLabel}</Text>
+              </Card>
+
+              <Card style={styles.infoCard}>
+                <View style={styles.infoCardHeader}>
+                  <Text style={styles.infoCardTitle}>Informações de contato</Text>
+                  {assistente ? (
+                    <Pressable
+                      accessibilityLabel="Editar informações de contato"
+                      hitSlop={8}
+                      style={styles.editButton}
+                      onPress={() => setEditingContato(true)}
+                    >
+                      <Ionicons name="pencil" size={17} color={colors.primary} />
+                    </Pressable>
+                  ) : (
+                    <Pressable
+                      accessibilityLabel="Editar email"
+                      hitSlop={8}
+                      style={styles.editButton}
+                      onPress={() => setEditingEmail(true)}
+                    >
+                      <Ionicons name="pencil" size={17} color={colors.primary} />
+                    </Pressable>
+                  )}
+                </View>
+                <View style={styles.infoRow}>
+                  <EmailIcon width={16} height={16} />
+                  <Text style={styles.infoText}>{data.email}</Text>
+                </View>
+                {assistente && (
+                  <View style={[styles.infoRow, styles.infoRowLast]}>
+                    <PhoneIcon width={15} height={15} />
+                    <Text style={styles.infoText}>{assistente.telefone}</Text>
+                  </View>
+                )}
+              </Card>
+
+              <Pressable
+                onPress={logout}
+                style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutButtonPressed]}
+              >
+                <LogoutIcon width={16} height={16} />
+                <Text style={styles.logoutText}>Sair</Text>
+              </Pressable>
+            </>
+          )
+        )}
       </View>
+
+      {assistente && userId && (
+        <EditPerfilModal
+          visible={editingContato}
+          initialValues={{ nome: assistente.nome, email: assistente.email, telefone: assistente.telefone }}
+          onClose={() => setEditingContato(false)}
+          onSave={async (values) => {
+            const updated = await assistentesApi.update(userId, values);
+            updateNome(updated.nome);
+            await reload();
+          }}
+        />
+      )}
+
+      {!assistente && data && (
+        <EditAdminEmailModal
+          visible={editingEmail}
+          initialValues={{ email: data.email }}
+          onClose={() => setEditingEmail(false)}
+          onSave={async (values) => {
+            await adminsApi.update(values);
+            await reload();
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -55,18 +153,27 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.lg,
   },
-  card: {
+  loading: {
+    paddingVertical: spacing.xxl,
     alignItems: 'center',
-    gap: spacing.sm,
+  },
+  profileCard: {
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   avatar: {
-    width: 64,
-    height: 64,
+    width: 72,
+    height: 72,
     borderRadius: radii.full,
-    backgroundColor: colors.primaryMuted,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
+  },
+  avatarText: {
+    fontSize: fontSizes.xl,
+    fontWeight: fontWeights.bold,
+    color: colors.textInverse,
   },
   name: {
     fontSize: fontSizes.md,
@@ -74,18 +181,69 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   role: {
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.base,
     color: colors.textSecondary,
   },
-  label: {
+  infoCard: {
+    padding: 0,
+  },
+  infoCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xs,
+  },
+  infoCardTitle: {
     fontSize: fontSizes.xs,
+    fontWeight: fontWeights.semibold,
     color: colors.textSecondary,
-    letterSpacing: 0.3,
-    marginTop: spacing.sm,
+    textTransform: 'uppercase',
   },
-  value: {
+  editButton: {
+    width: spacing.xxl,
+    height: spacing.xxl,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    backgroundColor: colors.primaryBackground,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  infoRowLast: {
+    borderBottomWidth: 0,
+  },
+  infoText: {
+    fontSize: fontSizes.base,
+    color: colors.textPrimary,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    height: 48,
+    borderRadius: radii.sm,
+    backgroundColor: colors.dangerBackground,
+    borderWidth: 1,
+    borderColor: colors.dangerBorder,
+  },
+  logoutButtonPressed: {
+    opacity: 0.85,
+  },
+  logoutText: {
     fontSize: fontSizes.base,
     fontWeight: fontWeights.medium,
-    color: colors.textPrimary,
+    color: colors.danger,
   },
 });

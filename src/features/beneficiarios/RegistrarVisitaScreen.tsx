@@ -82,10 +82,6 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
       setBeneficiarioError('Selecione um beneficiário.');
       return;
     }
-    if (!visitaLocation) {
-      setLocationError('Obtenha a localização da visita.');
-      return;
-    }
     setBeneficiarioError(null);
     setLocationError(null);
     setSubmitError(null);
@@ -111,7 +107,9 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
         ...values,
         beneficiarioId,
         imagens: mediaUrl ? [mediaUrl] : undefined,
-        // visitaLocation: visitaLocation ? { latitude: visitaLocation.latitude, longitude: visitaLocation.longitude } : undefined,
+        location: visitaLocation
+          ? { type: 'Point', coordinates: [visitaLocation.longitude, visitaLocation.latitude] }
+          : undefined,
       });
 
       navigation.goBack();
@@ -158,6 +156,7 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
             <TextField
               label="Evolução"
               multiline
+              placeholder="Ex.: Criança apresentou melhora na comunicação e interação com os colegas desde a última visita."
               value={value}
               onChangeText={onChange}
               error={errors.evolucao?.message}
@@ -171,6 +170,7 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
             <TextField
               label="Acompanhamento familiar"
               multiline
+              placeholder="Ex.: Família participa das atividades propostas e comparece às consultas e reuniões agendadas."
               value={value}
               onChangeText={onChange}
               error={errors.acompanhamento_familiar?.message}
@@ -184,6 +184,7 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
             <TextField
               label="Estímulo familiar"
               multiline
+              placeholder="Ex.: Orientar os pais a reservar um momento diário para atividades de leitura e brincadeiras com a criança."
               value={value}
               onChangeText={onChange}
               error={errors.estimulo_familiar?.message}
