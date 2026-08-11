@@ -154,6 +154,7 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
             <TextField
               label="Evolução"
               multiline
+              placeholder="Ex.: Criança apresentou melhora na comunicação e interação com os colegas desde a última visita."
               value={value}
               onChangeText={onChange}
               error={errors.evolucao?.message}
@@ -167,6 +168,7 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
             <TextField
               label="Acompanhamento familiar"
               multiline
+              placeholder="Ex.: Família participa das atividades propostas e comparece às consultas e reuniões agendadas."
               value={value}
               onChangeText={onChange}
               error={errors.acompanhamento_familiar?.message}
@@ -180,6 +182,7 @@ export function RegistrarVisitaScreen({ route, navigation }: Props) {
             <TextField
               label="Estímulo familiar"
               multiline
+              placeholder="Ex.: Orientar os pais a reservar um momento diário para atividades de leitura e brincadeiras com a criança."
               value={value}
               onChangeText={onChange}
               error={errors.estimulo_familiar?.message}

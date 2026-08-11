@@ -11,18 +11,19 @@ type TextFieldProps = TextInputProps & {
   error?: string;
 };
 
-export function TextField({ label, icon, secure, error, style, ...inputProps }: TextFieldProps) {
+export function TextField({ label, icon, secure, error, style, multiline, ...inputProps }: TextFieldProps) {
   const [hidden, setHidden] = useState(!!secure);
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputRow, !!error && styles.inputRowError]}>
+      <View style={[styles.inputRow, multiline && styles.inputRowMultiline, !!error && styles.inputRowError]}>
         {icon && <Ionicons name={icon} size={18} color={colors.textSecondary} style={styles.icon} />}
         <TextInput
-          style={[styles.input, style]}
+          style={[styles.input, multiline && styles.inputMultiline, style]}
           placeholderTextColor={colors.textSecondary}
           secureTextEntry={hidden}
+          multiline={multiline}
           {...inputProps}
         />
         {secure && (
@@ -61,6 +62,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.inputStroke,
   },
+  inputRowMultiline: {
+    height: 'auto',
+    minHeight: 80,
+    alignItems: 'flex-start',
+  },
   inputRowError: {
     borderWidth: 1,
     borderColor: colors.dangerBorder,
@@ -72,6 +78,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: fontSizes.base,
     color: colors.textPrimary,
+  },
+  inputMultiline: {
+    textAlignVertical: 'top',
+    paddingVertical: 0,
   },
   errorContainer: {
     flexDirection: 'row',
