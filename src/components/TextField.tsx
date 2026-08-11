@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   },
   inputMultiline: {
     textAlignVertical: 'top',
-    paddingVertical: 0,
+    paddingVertical: spacing.sm,
   },
   errorContainer: {
     flexDirection: 'row',
