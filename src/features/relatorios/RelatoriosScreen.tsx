@@ -1,41 +1,130 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import dayjs from 'dayjs';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
-import { TextField } from '../../components/TextField';
+import { DateField } from '../../components/DateField';
 import { StatTile } from '../../components/StatTile';
 import { BarChart } from '../../components/BarChart';
+import { ErrorBanner } from '../../components/ErrorBanner';
 import { colors, fontSizes, fontWeights, spacing } from '../../theme';
-
-const RESUMO_MOCK = { visitas: 28, familias: 12, pendentes: 3 };
-const VISITAS_POR_SEMANA_MOCK = [
-  { label: 'Sem. 1', value: 6 },
-  { label: 'Sem. 2', value: 9 },
-  { label: 'Sem. 3', value: 5 },
-  { label: 'Sem. 4', value: 8 },
-];
+import { useBeneficiarios } from '../beneficiarios/hooks';
+import { useVisitasComBeneficiarios } from '../agenda/hooks';
+import { rotuloCadastradoPor, useAssistentes } from '../assistentes/hooks';
+import { beneficiarioStatus } from '../../utils/age';
+import { DadosRelatorio, exportarCsv, exportarPdf, LinhaRelatorio } from './export';
 
 export function RelatoriosScreen() {
+  const insets = useSafeAreaInsets();
   const [inicio, setInicio] = useState('');
   const [fim, setFim] = useState('');
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [exportando, setExportando] = useState<'pdf' | 'csv' | null>(null);
 
-  function handleExport(label: string) {
-    if (!inicio || !fim) {
+  const { data: beneficiarios, loading: loadingBeneficiarios, error: errorBeneficiarios } = useBeneficiarios();
+  const { data: visitas, loading: loadingVisitas, error: errorVisitas } = useVisitasComBeneficiarios();
+  const { nomePorId } = useAssistentes();
+
+  const loading = loadingBeneficiarios || loadingVisitas;
+  const error = errorBeneficiarios || errorVisitas;
+
+  const visitasNoMes = useMemo(
+    () => visitas.filter((visita) => dayjs(visita.date).isSame(dayjs(), 'month')).length,
+    [visitas]
+  );
+  const familiasAtivas = useMemo(
+    () => beneficiarios.filter((item) => beneficiarioStatus(item.data_nascimento) === 'ativo').length,
+    [beneficiarios]
+  );
+  const familiasPendentes = useMemo(
+    () => beneficiarios.filter((item) => beneficiarioStatus(item.data_nascimento) === 'alerta').length,
+    [beneficiarios]
+  );
+  const visitasPorSemana = useMemo(() => {
+    const hoje = dayjs();
+    return [3, 2, 1, 0].map((semanasAtras, index) => {
+      const inicioSemana = hoje.subtract(semanasAtras, 'week').startOf('week');
+      const fimSemana = hoje.subtract(semanasAtras, 'week').endOf('week');
+      const value = visitas.filter((visita) => {
+        const data = dayjs(visita.date);
+        return !data.isBefore(inicioSemana) && !data.isAfter(fimSemana);
+      }).length;
+      return { label: `Sem. ${index + 1}`, value };
+    });
+  }, [visitas]);
+
+  const dadosDoPeriodo = useMemo<DadosRelatorio | null>(() => {
+    if (!inicio || !fim) return null;
+
+    const de = dayjs(inicio).startOf('day');
+    const ate = dayjs(fim).endOf('day');
+    const dentroDoPeriodo = (data?: string) => {
+      if (!data) return false;
+      const d = dayjs(data);
+      return d.isValid() && !d.isBefore(de) && !d.isAfter(ate);
+    };
+
+    const visitasFiltradas = visitas.filter((visita) => dentroDoPeriodo(visita.date));
+    const beneficiariosFiltrados = beneficiarios.filter((item) => dentroDoPeriodo(item.createdAt));
+
+    const chaves = new Set<string>([
+      ...visitasFiltradas.map((visita) => visita.assistenteId ?? ''),
+      ...beneficiariosFiltrados.map((beneficiario) => beneficiario.assistenteId ?? ''),
+    ]);
+
+    const porAssistente: LinhaRelatorio[] = Array.from(chaves)
+      .map((chave) => ({
+        assistente: rotuloCadastradoPor(chave || null, nomePorId),
+        visitas: visitasFiltradas.filter((visita) => (visita.assistenteId ?? '') === chave).length,
+        beneficiarios: beneficiariosFiltrados.filter(
+          (beneficiario) => (beneficiario.assistenteId ?? '') === chave
+        ).length,
+      }))
+      .filter((linha) => linha.visitas > 0 || linha.beneficiarios > 0)
+      .sort((a, b) => b.visitas - a.visitas);
+
+    return {
+      inicio,
+      fim,
+      totalVisitas: visitasFiltradas.length,
+      totalBeneficiarios: beneficiariosFiltrados.length,
+      porAssistente,
+    };
+  }, [inicio, fim, visitas, beneficiarios, nomePorId]);
+
+  async function handleExport(formato: 'pdf' | 'csv') {
+    if (!dadosDoPeriodo) {
       setFeedback({ type: 'error', message: 'Selecione o período completo!' });
       return;
     }
-    setFeedback({ type: 'success', message: `${label} gerado com sucesso.` });
+
+    setFeedback(null);
+    setExportando(formato);
+    try {
+      if (formato === 'pdf') {
+        await exportarPdf(dadosDoPeriodo);
+      } else {
+        await exportarCsv(dadosDoPeriodo);
+      }
+      setFeedback({ type: 'success', message: 'Relatório gerado. Escolha onde salvar ou enviar.' });
+    } catch {
+      setFeedback({ type: 'error', message: 'Não foi possível gerar o relatório agora.' });
+    } finally {
+      setExportando(null);
+    }
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Text style={styles.headerTitle}>Relatórios</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {error && <ErrorBanner message={error} />}
+
         <Card style={styles.card}>
           <View style={styles.cardTitleRow}>
             <View style={styles.iconBadge}>
@@ -49,12 +138,26 @@ export function RelatoriosScreen() {
 
           <View style={styles.dateRow}>
             <View style={styles.dateField}>
-              <TextField label="Início" placeholder="dd/mm/aaaa" value={inicio} onChangeText={setInicio} />
+              <DateField label="Início" value={inicio} onChange={setInicio} maximumDate={new Date()} />
             </View>
             <View style={styles.dateField}>
-              <TextField label="Fim" placeholder="dd/mm/aaaa" value={fim} onChangeText={setFim} />
+              <DateField label="Fim" value={fim} onChange={setFim} maximumDate={new Date()} />
             </View>
           </View>
+
+          {dadosDoPeriodo && (
+            <View style={styles.previaBox}>
+              <Text style={styles.previaTitulo}>
+                {dadosDoPeriodo.totalVisitas} visita(s) no período · {dadosDoPeriodo.totalBeneficiarios}{' '}
+                beneficiário(s) cadastrado(s)
+              </Text>
+              {dadosDoPeriodo.porAssistente.map((linha) => (
+                <Text key={linha.assistente} style={styles.previaLinha}>
+                  {linha.assistente}: {linha.visitas} visita(s), {linha.beneficiarios} beneficiário(s)
+                </Text>
+              ))}
+            </View>
+          )}
 
           {feedback && (
             <Text style={feedback.type === 'success' ? styles.successText : styles.errorText}>
@@ -64,10 +167,21 @@ export function RelatoriosScreen() {
 
           <View style={styles.buttonRow}>
             <View style={styles.buttonHalf}>
-              <Button label="Visualizar PDF" variant="outline" onPress={() => handleExport('PDF')} />
+              <Button
+                label="Exportar PDF"
+                variant="outline"
+                onPress={() => handleExport('pdf')}
+                loading={exportando === 'pdf'}
+                disabled={loading || exportando !== null}
+              />
             </View>
             <View style={styles.buttonHalf}>
-              <Button label="Exportar CSV" onPress={() => handleExport('CSV')} />
+              <Button
+                label="Exportar CSV"
+                onPress={() => handleExport('csv')}
+                loading={exportando === 'csv'}
+                disabled={loading || exportando !== null}
+              />
             </View>
           </View>
         </Card>
@@ -75,15 +189,15 @@ export function RelatoriosScreen() {
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>Resumo do mês</Text>
           <View style={styles.statsRow}>
-            <StatTile value={RESUMO_MOCK.visitas} label="Visitas" />
-            <StatTile value={RESUMO_MOCK.familias} label="Famílias" />
-            <StatTile value={RESUMO_MOCK.pendentes} label="Pendentes" />
+            <StatTile value={loading ? '—' : visitasNoMes} label="Visitas" />
+            <StatTile value={loading ? '—' : familiasAtivas} label="Famílias" />
+            <StatTile value={loading ? '—' : familiasPendentes} label="Pendentes" />
           </View>
         </Card>
 
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>Visitas por semana</Text>
-          <BarChart data={VISITAS_POR_SEMANA_MOCK} />
+          <BarChart data={visitasPorSemana} />
         </Card>
       </ScrollView>
     </View>
@@ -96,9 +210,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    height: 49,
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -144,6 +258,22 @@ const styles = StyleSheet.create({
   },
   dateField: {
     flex: 1,
+  },
+  previaBox: {
+    backgroundColor: colors.statTileBackground,
+    borderRadius: 12,
+    padding: spacing.md,
+    gap: spacing.xs,
+    marginTop: -spacing.sm,
+  },
+  previaTitulo: {
+    fontSize: fontSizes.sm,
+    fontWeight: fontWeights.semibold,
+    color: colors.textPrimary,
+  },
+  previaLinha: {
+    fontSize: fontSizes.xs,
+    color: colors.textSecondary,
   },
   successText: {
     fontSize: fontSizes.sm,

@@ -10,8 +10,10 @@ export type Beneficiario = {
   data_nascimento: string;
   phone1: string;
   phone2?: string;
+  foto?: string;
   location: GeoPoint;
-  assistenteId: string;
+  assistenteId: string | null;
+  createdAt?: string;
 };
 
 export type BeneficiarioInput = {
@@ -20,6 +22,7 @@ export type BeneficiarioInput = {
   data_nascimento: string;
   phone1: string;
   phone2?: string;
+  foto?: string;
   location: GeoPoint;
 };
 
@@ -32,6 +35,7 @@ export type Visita = {
   assistenteId: string;
   beneficiarioId: string;
   imagens?: string[];
+  location?: GeoPoint | null;
 };
 
 export type VisitaInput = {
@@ -41,6 +45,7 @@ export type VisitaInput = {
   estimulo_familiar: string;
   beneficiarioId: string;
   imagens?: string[];
+  location?: GeoPoint | null;
 };
 
 export type AssistenteSocial = {
@@ -54,3 +59,16 @@ export type AssistenteSocial = {
 export type LoginResponse = {
   token: string;
 };
+
+export type MeAdmin = {
+  uuid: string;
+  email: string;
+};
+
+export type MeAssistente = {
+  nome: string;
+  email: string;
+  telefone: string;
+};
+
+export type MeResponse = MeAdmin | MeAssistente;

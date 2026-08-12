@@ -1,5 +1,8 @@
 CONTEXT.txt
-
+*CLAUDE.md
+*.rtk/
+*.claude/
+*api_benefs/
 # dependencies
 node_modules/
 
@@ -25,6 +28,7 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
 
 # macOS
 .DS_Store

@@ -3,6 +3,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { isAxiosError } from 'axios';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/TextField';
@@ -20,6 +21,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export function LoginScreen() {
   const { login } = useAuth();
+  const insets = useSafeAreaInsets();
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -53,7 +55,7 @@ export function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.hero}>
+      <View style={[styles.hero, { paddingTop: insets.top + spacing.xxl * 2 }]}>
         <Text style={styles.heroSubtitle}>Programa Criança Feliz</Text>
         <Text style={styles.heroTitle}>SIGPCF</Text>
         <Text style={styles.heroTagline}>
@@ -128,7 +130,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   hero: {
-    paddingTop: 96,
     paddingHorizontal: spacing.xxl,
     paddingBottom: spacing.xxl,
   },

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   LayoutAnimation,
@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FamiliasStackParamList } from '../../navigation/types';
 import { Badge } from '../../components/Badge';
 import { EmptyState } from '../../components/EmptyState';
@@ -28,8 +30,15 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 type Props = NativeStackScreenProps<FamiliasStackParamList, 'Lista'>;
 
 export function ListScreen({ navigation }: Props) {
-  const { data, loading, error } = useBeneficiarios();
+  const insets = useSafeAreaInsets();
+  const { data, loading, error, reload } = useBeneficiarios();
   const [query, setQuery] = useState('');
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload])
+  );
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -46,7 +55,7 @@ export function ListScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
+      <View style={[styles.headerRow, { paddingTop: insets.top + spacing.lg }]}>
         <Text style={styles.headerTitle}>Famílias</Text>
         <Pressable style={styles.newButton} onPress={() => navigation.navigate('Novo')}>
           <Ionicons name="add" size={16} color={colors.textInverse} />
@@ -133,7 +142,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: spacing.xl,
     paddingBottom: spacing.lg,
   },
   headerTitle: {

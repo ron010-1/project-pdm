@@ -8,7 +8,10 @@ export const colors = {
   textInverse: '#fcfcfc',
 
   primary: '#0b60b2',
+  primaryBackground: '#dfeaf5',
   primaryMuted: 'rgba(11, 96, 178, 0.1)',
+
+  secondary: '#919191',
 
   success: '#03a14a',
   successMuted: 'rgba(3, 161, 74, 0.15)',
@@ -21,7 +24,8 @@ export const colors = {
   dangerBackground: '#fce9e9',
 
   statTileBackground: '#ecf3f8',
-  inputBackground: '#eeeeee',
+  inputBackground: '#ffffff',
+  inputStroke: '#e0e5eb',
 };
 
 export type StatusVariant = 'ativo' | 'alerta' | 'finalizado' | 'realizada';
