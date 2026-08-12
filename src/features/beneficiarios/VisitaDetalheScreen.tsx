@@ -137,9 +137,17 @@ export function VisitaDetalheScreen({ route, navigation }: Props) {
           />
         </Card>
 
-        <Text style={styles.sectionTitle}>RELATO</Text>
+        <Text style={styles.sectionTitle}>EVOLUCAO</Text>
         <Card style={styles.relatoCard}>
           <Text style={styles.relatoText}>{visita.evolucao}</Text>
+        </Card>
+        <Text style={styles.sectionTitle}>ACOMPANHAMENTO FAMILIAR</Text>
+        <Card style={styles.relatoCard}>
+          <Text style={styles.relatoText}>{visita.acompanhamento_familiar}</Text>
+        </Card>
+        <Text style={styles.sectionTitle}>ESTIMULO FAMILIAR</Text>
+        <Card style={styles.relatoCard}>
+          <Text style={styles.relatoText}>{visita.estimulo_familiar}</Text>
         </Card>
 
         {mediaUrl && (
